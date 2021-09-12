@@ -1,0 +1,121 @@
+#!/usr/bin/perl
+#
+# Programmer:    Craig Stuart Sapp <craig.stanford.edu>
+# Creation Date: Sun Sep 12 10:43:54 PDT 2021
+# Last Modified: Sun Sep 12 10:43:57 PDT 2021
+# Filename:      nifc-humdrum-data/cache/bin/purgeCache
+# Syntax:        perl 5
+#
+# Description:   Remove old cache entries from cache.
+#
+
+use strict;
+use File::Copy;
+use File::Path;
+
+my $targetdir = "purged";
+die "ERROR $targetdir is empty" if $targetdir =~ /^\s*$/;
+die "ERROR $targetdir is invalid" if $targetdir =~ /^[.\/]+/;
+
+my $indexfile = "index.hmd";
+my %index = getIndex($indexfile);
+
+purgeDirectory("0");
+purgeDirectory("1");
+purgeDirectory("2");
+purgeDirectory("3");
+purgeDirectory("4");
+purgeDirectory("5");
+purgeDirectory("6");
+purgeDirectory("7");
+purgeDirectory("8");
+purgeDirectory("9");
+purgeDirectory("a");
+purgeDirectory("b");
+purgeDirectory("c");
+purgeDirectory("d");
+purgeDirectory("e");
+purgeDirectory("f");
+
+exit(0);
+
+
+##########################################################################
+
+
+##############################
+##
+## purgeDirectory --
+##
+
+sub purgeDirectory {
+	my ($basedir) = @_;
+	return if !-d $basedir;
+	my @subdirs;
+	my @md5dirs;
+	opendir(DIR, $basedir) or die "Cannot read $basedir\n";
+	while (my $file = readdir(DIR)) {
+		next if $file =~ /^\./;
+		next if !-d "$basedir/$file";
+		if ($file =~ /^[0-9a-f]$/) {
+			$subdirs[@subdirs] = $file;
+		} elsif ($file =~ /^[0-9a-f]{8}$/) {
+			$md5dirs[@md5dirs] = $file;
+		}
+	}
+	foreach my $dir (sort @md5dirs) {
+		if ($index{$dir} =~ /^\s*$/) {
+			# orphaned cached entry
+			if (-d "$targetdir/$dir") {
+				print "Deleting old purged file $targetdir/$dir\n";
+				rmtree("$targetdir/$dir") or die "Cannot delete $targetdir/$dir\n";
+			}
+			print "Moving $basedir/$dir to $targetdir\n";
+			move("$basedir/$dir", $targetdir);
+		}
+	}
+	foreach my $dir (sort @subdirs) {
+		purgeDirectory("$basedir/$dir");
+	}
+}
+
+
+
+##############################
+##
+## getIndex --
+##
+
+sub getIndex {
+	my ($indexfile) = @_;
+	open(FILE, $indexfile) or die "Cannot read $indexfile\n";
+	my @contents = <FILE>;
+	chomp @contents;
+	close FILE;
+	my $md5Index    = -1;
+	my $fileidIndex = -1;
+	my $exinterp = 0;
+	my %output;
+	for (my $i=0; $i<@contents; $i++) {
+		my $line = $contents[$i];
+		next if $line =~ /^!/;
+		if ($line =~ /^\*\*/) {
+			$exinterp = 1;
+			my @fields = split(/\t+/, $line);
+			for (my $j=0; $j<@fields; $j++) {
+				$md5Index = $j if $fields[$j] eq "**md5";
+				$fileidIndex = $j if $fields[$j] eq "**fileid";
+			}
+			next;
+		}
+		next if $line =~ /^\*/;
+		next if !$exinterp;
+		die "Cannot find MD5 column in index file\n" if $md5Index < 0;
+		die "Cannot find FileId column in index file\n" if $fileidIndex < 0;
+		my @fields = split(/\t+/, $line);
+		$output{$fields[$md5Index]} = $fields[$fileidIndex];
+	}
+	return %output;
+}
+
+

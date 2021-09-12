@@ -1,0 +1,142 @@
+#!/usr/bin/perl
+#
+# Programmer:    Craig Stuart Sapp <craig.stanford.edu>
+# Creation Date: Sun Sep 12 08:06:52 PDT 2021
+# Last Modified: Sun Sep 12 08:28:21 PDT 2021
+# Filename:      nifc-humdrum-data/cache/bin/makeIndex
+# Syntax:        perl 5
+#
+# Description:   Copy kern files into cache directories for files.
+#
+
+use strict;
+use File::Path qw(make_path);
+use File::Copy;
+
+my $depth = 1;
+$depth = 1 if $depth < 1;
+$depth = 1 if $depth > 3;
+
+my $srcdir = "../kern";
+
+my $indexfile = "index.hmd";
+my %index = getIndex($indexfile);
+
+my @keys = sort keys %index;
+
+foreach my $key (@keys) {
+	copyFileToCache($key, $index{$key});
+}
+
+exit(0);
+
+###########################################################################
+
+
+##############################
+##
+## copyFileToCache --
+##
+
+sub copyFileToCache {
+	my ($md5, $fileid) = @_;
+	my $targetdir = getTargetDir($md5, $depth);
+
+	# File is already in cache:
+	return if -d "$targetdir";
+
+	die "ERROR: Target directory $targetdir is not a directory\n" if -r $targetdir;
+
+	my @srcfiles = glob("$srcdir/$fileid*.krn");
+	my $srcfile;
+	if (@srcfiles == 1) {
+		$srcfile = @srcfiles[0];
+	} elsif (@srcfiles == 0) {
+		die "ERROR: Cannot find file for $fileid\n";
+	} else {
+		for (my $i=0; $i<@srcfiles; $i++) {
+			# POPC-2 filename:
+			if ($srcfiles[$i] =~ /\/${fileid}_.*\.krn$/) {
+				$srcfile = $srcfiles[$i];
+				last;
+			}
+			if ($srcfiles[$i] =~ /\/${fileid}.krn$/) {
+				$srcfile = $srcfiles[$i];
+				last;
+			}
+		}
+	}
+	if ($srcfile =~ /^\s*$/) {
+		die "ERRORB: Cannot find file for $fileid\n";
+	}
+
+	# Create target directory
+	make_path($targetdir) or die "ERROR: Cannot create directory $targetdir\n";
+
+	print "Copying $srcfile TO $targetdir/$md5.krn\n";
+	copy($srcfile, "$targetdir/$md5.krn");
+
+	die "ERROR: could not copy $srcfile to $targetdir/$md5.krn\n" if !-r "$targetdir/$md5.krn";
+}
+
+
+
+##############################
+##
+## getTargetDir --
+##
+
+sub getTargetDir {
+	my ($md5, $depth) = @_;
+	return $md5 if $depth == 0;
+	my @pieces = split(//, $md5);
+	my $output = "";
+	for (my $i=0; $i<$depth; $i++) {
+		$output .= $pieces[$i] . "/";
+	}
+	$output .= $md5;
+	return $output;
+}
+
+
+
+##############################
+##
+## getIndex --
+##
+
+sub getIndex {
+	my ($indexfile) = @_;
+	open(FILE, $indexfile) or die "Cannot read $indexfile\n";
+	my @contents = <FILE>;
+	chomp @contents;
+	close FILE;
+	my $md5Index    = -1;
+	my $fileidIndex = -1;
+	my $exinterp = 0;
+	my %output;
+	for (my $i=0; $i<@contents; $i++) {
+		my $line = $contents[$i];
+		next if $line =~ /^!/;
+		if ($line =~ /^\*\*/) {
+			$exinterp = 1;
+			my @fields = split(/\t+/, $line);
+			for (my $j=0; $j<@fields; $j++) {
+				$md5Index = $j if $fields[$j] eq "**md5";
+				$fileidIndex = $j if $fields[$j] eq "**fileid";
+			}
+			next;
+		}
+		next if $line =~ /^\*/;
+		next if !$exinterp;
+		die "Cannot find MD5 column in index file\n" if $md5Index < 0;
+		die "Cannot find FileId column in index file\n" if $fileidIndex < 0;
+		my @fields = split(/\t+/, $line);
+		$output{$fields[$md5Index]} = $fields[$fileidIndex];
+	}
+	return %output;
+}
+
+
+
+

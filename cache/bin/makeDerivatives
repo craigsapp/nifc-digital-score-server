@@ -1,0 +1,118 @@
+#!/usr/bin/perl
+#
+# Programmer:    Craig Stuart Sapp <craig.stanford.edu>
+# Creation Date: Sun Sep 12 11:26:56 PDT 2021
+# Last Modified: Sun Sep 12 11:26:58 PDT 2021
+# Filename:      nifc-humdrum-data/cache/bin/makeDerivatives
+# Syntax:        perl 5
+#
+# Description:   Create derivative files from cached Humdrum files.
+#
+# Specific derivatives:
+#    mei      == Create MEI file (using verovio)
+# To do:
+#    musicxml == Create MusicXML file (using converter21)
+#
+
+use strict;
+use Getopt::Long;
+
+my $derivatives;
+Getopt::Long::Configure("bundling");
+GetOptions (
+   'd|derivative|derivatives=s' => \$derivatives
+);
+
+$derivatives = "mei" if $derivatives =~ /^\s*$/;
+
+$derivatives =~ s/^[^0-9a-zA-Z_-]+//;
+$derivatives =~ s/[^0-9a-zA-Z_-]+$//;
+
+my @dlist = split (/[^0-9a-zA-Z_-]+/, $derivatives);
+
+my $bindir = `pwd`;
+chomp $bindir;
+$bindir =~ s/\/$//;
+if ($bindir !~ /\/bin$/) {
+	$bindir .= "/bin";
+}
+
+die "ERROR: Cannot find bin directory $bindir\n" if !-d $bindir;
+
+prepareDerivatives("0");
+prepareDerivatives("1");
+prepareDerivatives("2");
+prepareDerivatives("3");
+prepareDerivatives("4");
+prepareDerivatives("5");
+prepareDerivatives("6");
+prepareDerivatives("7");
+prepareDerivatives("8");
+prepareDerivatives("9");
+prepareDerivatives("a");
+prepareDerivatives("b");
+prepareDerivatives("c");
+prepareDerivatives("d");
+prepareDerivatives("e");
+prepareDerivatives("f");
+
+exit(0);
+
+
+###########################################################################
+
+##############################
+##
+## prepareDerivatives --
+##
+
+sub prepareDerivatives {
+	my ($basedir) = @_;
+	return if !-d $basedir;
+	my @subdirs;
+	my @md5dirs;
+	opendir(DIR, $basedir) or die "Cannot read $basedir\n";
+	while (my $file = readdir(DIR)) {
+		next if $file =~ /^\./;
+		next if !-d "$basedir/$file";
+		if ($file =~ /^[0-9a-f]$/) {
+			$subdirs[@subdirs] = $file;
+		} elsif ($file =~ /^[0-9a-f]{8}$/) {
+			$md5dirs[@md5dirs] = $file;
+		}
+	}
+	foreach my $md5 (sort @md5dirs) {
+		prepareDerivativesForEntry($basedir, $md5);
+	}
+	foreach my $dir (sort @subdirs) {
+		prepareDerivatives("$basedir/$dir");
+	}
+}
+
+
+
+##############################
+##
+## prepareDerivativesForEntry --
+##
+
+sub prepareDerivativesForEntry {
+	my ($basedir, $md5) = @_;
+	die "Problem in basedir $basedir" if $basedir !~ /^[a-zA-Z0-9_\/-]+$/;
+	die "Problem in md5 $md5" if $md5 !~ /^[0-9a-f]{8}$/;
+	die "Cannot locate directory $basedir/$md5\n" if !-d "$basedir/$md5";
+	die "Cannot locate source file $basedir/$md5/$md5.krn\n" if !-r "$basedir/$md5/$md5.krn";
+	foreach my $derivative (@dlist) {
+		my $dscript = "$bindir/derivative-$derivative";
+		if (!-r $dscript) {
+			print STDERR "WARNING: Derivative-generating program $dscript does not exist.\n";
+			next;
+		}
+		my $command = "(cd $basedir/$md5 && $dscript $md5)";
+		`$command`;
+	}
+}
+
+
+
+
