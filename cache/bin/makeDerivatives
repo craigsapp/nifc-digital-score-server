@@ -18,9 +18,11 @@ use strict;
 use Getopt::Long;
 
 my $derivatives;
+my $forceQ = 0;
 Getopt::Long::Configure("bundling");
 GetOptions (
-   'd|derivative|derivatives=s' => \$derivatives
+   'd|derivative|derivatives=s' => \$derivatives,
+   'f|force' => \$forceQ
 );
 
 $derivatives = "mei" if $derivatives =~ /^\s*$/;
@@ -108,7 +110,12 @@ sub prepareDerivativesForEntry {
 			print STDERR "WARNING: Derivative-generating program $dscript does not exist.\n";
 			next;
 		}
-		my $command = "(cd $basedir/$md5 && $dscript $md5)";
+		my $command;
+		if ($forceQ) {
+			$command = "(cd $basedir/$md5 && $dscript -f $md5)";
+		} else {
+			$command = "(cd $basedir/$md5 && $dscript $md5)";
+		}
 		`$command`;
 	}
 }
