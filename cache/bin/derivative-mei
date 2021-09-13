@@ -39,13 +39,13 @@ my $verovio = `which verovio`;
 chomp $verovio;
 die "ERROR: Cannot locate verovio command\n" if $verovio =~ /^\s*$/;
 
-my $bzip2 = `which bzip2`;
-chomp $bzip2;
-die "ERROR: Cannot locate verovio command\n" if $bzip2 =~ /^\s*$/;
+my $gzip = `which gzip`;
+chomp $gzip;
+die "ERROR: Cannot locate gzip command\n" if $gzip =~ /^\s*$/;
 
 
 `$verovio $inputfile -atmei -o $outputfile`;
-`$bzip2 $outputfile`;
+`$gzip $outputfile`;
 
 
 

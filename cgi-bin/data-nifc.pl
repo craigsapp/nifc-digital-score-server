@@ -3,7 +3,7 @@
 # Programmer:    Craig Stuart Sapp <craig.stanford.edu>
 # Creation Date: Sun 12 Sep 2021 07:37:36 PM PDT
 # Last Modified: Sun 12 Sep 2021 07:37:38 PM PDT
-# Filename:      data-nifc.pl
+# Filename:      data-nifc/cgi-bin/data-nifc.pl
 # Syntax:        perl 5
 # vim:           ts=3
 #
@@ -24,25 +24,57 @@ my $cacheindex = "$cachedir/index.hmd";
 ##
 ##############################
 
-# Main parameter is given in "parameters" CGI parameter:
+# Main parameters is given in "id" CGI parameter:
 use CGI;
 my $cgi_form = new CGI;
-my $parameters  = $cgi_form->param('parameters');
+my %OPTIONS;
+$OPTIONS{"id"}         = $cgi_form->param("id");
+$OPTIONS{"format"}     = $cgi_form->param("format");
+if ($OPTIONS{"format"} =~ /^\s*$/) {
+	$OPTIONS{"format"}  = $cgi_form->param("f");
+}
 
-if ($parameters eq "test") {
-	my $testpage = getTestPage($parameters);
+if ($OPTIONS{"id"} eq "test") {
+	my $testpage = getTestPage($OPTIONS{"id"});
 	print "Content-Type: text/html\n\n";
 	print $testpage;
 	exit(0);
 }
 
-if ($parameters =~ /^([0-9a-zA-Z:_-]+)\.([0-9a-zA-Z_-]+)$/) {
+if ($OPTIONS{"id"} =~ /^([0-9a-zA-Z:_-]+)\.([0-9a-zA-Z_-]+)$/) {
 	my $id = $1;
 	my $format = $2;
+	$format = $OPTIONS{"format"} if $OPTIONS{"format"} !~ /^\s*$/;
+	processSimpleParameter($id, $format);
+} elsif ($OPTIONS{"id"} =~ /^([0-9a-zA-Z:_-]+)$/) {
+	my $id = $1;
+	my $format = $OPTIONS{"format"} if $OPTIONS{"format"} !~ /^\s*$/;
+	# Send Humdrum data if no format is specified:
+	$format = "krn" if $format =~ /^\s*$/;
 	processSimpleParameter($id, $format);
 }
 
-errorMessage("No data format specified.");
+my $message = <<"EOT";
+<p>Problem with data request.</p>
+<style>
+table td:first-child { font-weight: bold; }
+</style>
+<table>
+EOT
+foreach my $key (sort keys %OPTIONS) {
+$message .= <<"EOT";
+<tr>
+	<td>
+		$key;
+	</td>
+	<td>
+		$OPTIONS{$key};
+	</td>
+</tr>
+EOT
+}
+$message .= "</table>\n";
+errorMessage($message);
 
 
 exit(0);
@@ -91,14 +123,11 @@ sub processSimpleParameter {
 	errorMessage("File for $id was not found.") if $md5 =~ /^\s*$/;
 
 	if ($format eq "krn") {
-		my $data = getDataContent($md5, "krn");
-		print "Content-Type: text/plain\n\n";
-		print $data;
-		exit(0);
+		sendDataContent($md5, "krn");
 	} elsif ($format eq "mei") {
-		my $data = getDataContent($md5, "mei");
+		sendDataContent($md5, "mei");
 	} elsif ($format eq "musicxml") {
-		my $data = getDataContent($md5, "musicxml");
+		sendDataContent($md5, "musicxml");
 	} else {
 		errorMessage("Unknown data format: $format");
 	}
@@ -108,27 +137,54 @@ sub processSimpleParameter {
 
 ##############################
 ##
-## getDataContent --
+## sendDataContent --
 ##
 
-sub getDataContent {
+sub sendDataContent {
 	my ($md5, $format) = @_;
 	errorMessage("Bad MD5 tag $md5") if $md5 !~ /^[0-9a-f]{8}$/;
+
+	my $cdir = getCacheSubdir($md5, 1);
+
 	if ($format eq "krn") {
 
-		my $cdir = getCacheSubdir($md5, 1);
 		my $filename = "$cachedir/$cdir/$md5.krn";
 		if (!-r $filename) {
 			errorMessage("Cannot find $cdir/$md5.krn");
 		}
 		open(FILE, $filename) or errorMessage("Cannot read $cdir/$md5.krn");
-		my $output = "";
+		my $data = "";
 		while (my $line = <FILE>) {
-			$output .= $line;
+			$data .= $line;
 		}
 		close FILE;
-		return $output;
+		print "Content-Type: text/plain\n\n";
+		print $data;
+		exit(0);
+
 	} elsif ($format eq "mei") {
+		# MEI data is stored in bzip2-compressed file.  If the browser
+		# accepts gzip compressed data, send the compressed form of the data;
+		# otherwise, unzip and send as plain text.
+		my $compressQ = 0;
+		$compressQ = 1 if $ENV{'HTTP_ACCEPT_ENCODING'} =~ /\bgzip\b/;
+		if (!-r "$cachedir/$cdir/$md5.mei.gz") {
+			errorMessage("MEI file is missing for $OPTIONS{'id'}.\n");
+		}
+		if ($compressQ) {
+			my $data = `cat "$cachedir/$cdir/$md5.mei.gz"`;
+			print "Content-Type: text/plain\n";
+			print "Content-Encoding: gzip\n";
+			print "\n";
+			print $data;
+			exit(0);
+		} else {
+			my $data = `zcat "$cachedir/$cdir/$md5.mei.gz"`;
+			print "Content-Type: text/plain\n\n";
+			print $data;
+			exit(0);
+		}
+	} elsif ($format eq "musicxml") {
 		errorMessage("$format NOT YET IMPLEMENTED");
 	} else {
 		errorMessage("Unknown data format: $format");
@@ -210,29 +266,30 @@ EOT
 
 ##############################
 ##
-## getTestPage --
+## getTestPage -- Used (initially) for debugging.
 ##
 
 sub getTestPage {
-	my $output;
-	$output .= "<html>\n";
-	$output .= "<head>\n";
-	$output .= "<title> TITLE </title>\n";
-	$output .= "</head>\n";
-	$output .= "<body>\n";
-	$output .= "<h1> CGI SCRIPT PAGE </h1>\n";
-	$output .= "$parameters\n";
-	$output .= "<h1> Env </h1>\n";
-	$output .= "<table>\n";
+	my $output = <<"EOT";
+<html>
+<head>
+<title> TITLE </title>
+</head>
+<body>
+<h1> CGI SCRIPT PAGE </h1>
+$OPTIONS{'id'}
+<h1> Env </h1>
+<table>
+EOT
+
 	foreach my $key (sort keys %ENV) {
 		$output .= "<tr>\n";
 		$output .= "<td>$key</td>\n";
 		$output .= "<td>$ENV{$key}</td>\n";
 		$output .= "</tr>\n";
 	}
-	$output .= "</table>\n";
-	$output .= "</body>\n";
-	$output .= "</html>\n";
+	$output .= "</table>\n</body>\n</html>\n";
+
 	return $output;
 }
 
