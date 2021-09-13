@@ -12,13 +12,13 @@
 
 use strict;
 
-my $md5sum = `which md5`;
+my $md5sum = `which md5 2> /dev/null`;
 chomp $md5sum;
 if ($md5sum =~ /^\s*$/) {
 	$md5sum = `which md5sum`;
 	chomp $md5sum;
 }
-die "Cannot find MD5 program." if $md5sum =~ /^\s*$/;
+die "Cannot find md5 or md5sum programs." if $md5sum =~ /^\s*$/;
 
 my $srcdir = "../kern";
 
