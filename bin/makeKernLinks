@@ -28,7 +28,13 @@ GetOptions (
 );
 
 $targetdir = "kern" if !$targetdir;
-die "Target directory $targetdir does not exist.  Create it first." if !-d $targetdir;
+die "Invalid directory $targetdir\n" if $targetdir =~ /^[\/.]/;
+die "Invalid directory $targetdir\n" if $targetdir =~ /\s/;
+die "Invalid directory $targetdir\n" if $targetdir =~ /[^0-9a-zA-Z\/_-]/;
+if (!-d $targetdir) {
+	`mkdir -p "$targetdir"`;
+}
+
 deleteTargetKernFiles($targetdir);
 
 my @dirs = @ARGV;  # Directories that contain *.krn files to link.
