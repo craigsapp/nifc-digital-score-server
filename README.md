@@ -203,11 +203,11 @@ Here is a description of support software needed to create derivatives files for
 Install verovio on the server with these commands:
 
 ```bash
-	git clone https://github.com/rism-digita/verovio
-	cd verovio/tools
-	./.configure
-	make
-	make install
+git clone https://github.com/rism-digita/verovio
+cd verovio/tools
+./.configure
+make
+make install
 ```
 
 Note that cmake is required (and must first be installed if not available).
