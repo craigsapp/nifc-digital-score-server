@@ -2,7 +2,7 @@
 #
 # Programmer:    Craig Stuart Sapp <craig.stanford.edu>
 # Creation Date: Sun 12 Sep 2021 07:37:36 PM PDT
-# Last Modified: Sun 12 Sep 2021 07:37:38 PM PDT
+# Last Modified: Tue 14 Sep 2021 07:10:38 AM PDT
 # Filename:      data-nifc/cgi-bin/data-nifc.pl
 # Syntax:        perl 5
 # vim:           ts=3
@@ -17,67 +17,46 @@ use strict;
 ## Configuration variables:
 ##
 
+# basedir == The location of the files for the website.
 my $basedir    = "/project/data-nifc/data-nifc";
+
+# cachedir == The absolute path to the cache directory.
 my $cachedir   = "$basedir/cache";
-my $cacheindex = "$cachedir/index.hmd";
+
+# cachedir == The absolute path to the cache index file.
+my $cacheIndex = "$cachedir/index.hmd";
+
+# cacheDepth == The number of subdirectories before reaching individual cache directory.
 my $cacheDepth = 1;
 
 ##
 ##############################
 
-# Main parameters is given in "id" CGI parameter:
+
+# Load CGI parameters into %OPTIONS:
 use CGI;
 my $cgi_form = new CGI;
 my %OPTIONS;
-$OPTIONS{"id"}         = $cgi_form->param("id");
-$OPTIONS{"format"}     = $cgi_form->param("format");
+$OPTIONS{"id"} = $cgi_form->param("id");
+$OPTIONS{"format"} = $cgi_form->param("format");
+# "f" is a shortcut for format:
 if ($OPTIONS{"format"} =~ /^\s*$/) {
 	$OPTIONS{"format"}  = $cgi_form->param("f");
 }
+splitFormatFromId();
 
+
+# Return requested data:
 if ($OPTIONS{"id"} eq "test") {
-	my $testpage = getTestPage($OPTIONS{"id"});
-	print "Content-Type: text/html\n\n";
-	print $testpage;
-	exit(0);
-} elsif ($OPTIONS{"id"} =~ /^random(\.?|$)/) {
-	sendRandomWork();
+	# id == test :: print ENV and input parameters for debugging and development.
+	sendTestPage($OPTIONS{"id"}, $OPTIONS{"format"});
+} elsif ($OPTIONS{"id"} eq "random") {
+	# id == random :: send a randomly selected work.
+	sendRandomWork($OPTIONS{"format"});
+} else {
+	# ID should refer to a specific file, so return data in requested format:
+	processParameters($OPTIONS{"id"}, $OPTIONS{"format"});
 }
-
-if ($OPTIONS{"id"} =~ /^([0-9a-zA-Z:_-]+)\.([0-9a-zA-Z_-]+)$/) {
-	my $id = $1;
-	my $format = $2;
-	$format = $OPTIONS{"format"} if $OPTIONS{"format"} !~ /^\s*$/;
-	processSimpleParameter($id, $format);
-} elsif ($OPTIONS{"id"} =~ /^([0-9a-zA-Z:_-]+)$/) {
-	my $id = $1;
-	my $format = $OPTIONS{"format"} if $OPTIONS{"format"} !~ /^\s*$/;
-	# Send Humdrum data if no format is specified:
-	$format = "krn" if $format =~ /^\s*$/;
-	processSimpleParameter($id, $format);
-}
-
-my $message = <<"EOT";
-<p>Problem with data request.</p>
-<style>
-table td:first-child { font-weight: bold; }
-</style>
-<table>
-EOT
-foreach my $key (sort keys %OPTIONS) {
-$message .= <<"EOT";
-<tr>
-	<td>
-		$key;
-	</td>
-	<td>
-		$OPTIONS{$key};
-	</td>
-</tr>
-EOT
-}
-$message .= "</table>\n";
-errorMessage($message);
 
 
 exit(0);
@@ -87,29 +66,52 @@ exit(0);
 
 ##############################
 ##
-## processSimpleParameter -- Such as:
+## splitFormatFromId -- id.format gets divided into separate parameters.
+##
+
+sub splitFormatFromId {
+	my $id = $OPTIONS{"id"};
+	my $format = $OPTIONS{"format"};
+	my $newformat = "";
+	if ($id =~ s/\.([0-9a-zA-Z_-]+)$//) {
+		$newformat = $1;
+	}
+	if ($newformat !~ /^\s*$/) {
+		if ($format =~ /^\s*$/) {
+			$format = $newformat;
+		}
+	}
+	if ($format =~ /^\s*$/) {
+		$format = "krn";
+	}
+
+	$format = cleanFormat($format);
+	$id     = cleanId($id);
+
+	$OPTIONS{"id"} = $id;
+	$OPTIONS{"format"} = $format;
+}
+
+
+
+##############################
+##
+## processParameters -- Such as:
 ##     https://humdrum.nifc.pl/004-1a-COC-003.krn for kern file
 ##     https://humdrum.nifc.pl/004-1a-COC-003.mei for MEI file
 ##     https://humdrum.nifc.pl/16xx:1210.krn for kern file
 ##     https://humdrum.nifc.pl/16xx:1210.mei for MEI file
 ##
 
-sub processSimpleParameter {
+sub processParameters {
 	my ($id, $format) = @_;
 
-	# Remove _composer--title information for POPC-2:
-	if ($id =~ /^(pl-[^_]+)_.*$/) {
-		$id = $1;
-	}
-
-	$format = cleanFormat($format);
-	$id     = cleanId($id);
-
 	errorMessage("ID is empty.") if $id =~ /^\s*$/;
-	errorMessage("ID cannot contain only periods.") if $id =~ /^\.+$/;
+	errorMessage("Strange invalid ID \"$id\".") if $id =~ /^[._-]+$/;
+	errorMessage("ID \"$id\" contains invalid characters.") if $id =~ /[^a-zA-Z0-9:_-]/;
 
-	my $md5 = getMd5($id, $cacheindex);
-	errorMessage("File for $id was not found.") if $md5 =~ /^\s*$/;
+	my $md5 = getMd5($id, $cacheIndex);
+	errorMessage("Entry for $id was not found.") if $md5 =~ /^[.\s]*$/;
 
 	if ($format eq "krn") {
 		sendDataContent($md5, "krn");
@@ -245,16 +247,16 @@ sub sendMusicxmlContent {
 
 ##############################
 ##
-## getCacheSubdir --
+## getCacheSubdir -- For example 63a45fe4 goes to 6/63a45fe4 when the depth is 1.
 ##
 
 sub getCacheSubdir {
-	my ($md5, $level) = @_;
-	$level = 1 if $level < 1;
-	$level = 3 if $level > 3;
+	my ($md5, $depth) = @_;
+	$depth = 1 if $depth < 1;
+	$depth = 3 if $depth > 3;
 	my @pieces = split(//, $md5);
 	my $output = "";
-	for (my $i=0; $i<$level; $i++) {
+	for (my $i=0; $i<$depth; $i++) {
 		$output .= "$pieces[$i]/";
 	}
 	$output .= "$md5";
@@ -265,12 +267,12 @@ sub getCacheSubdir {
 
 ##############################
 ##
-## getMd5 -- Input an ID and return an MD5 8-hex-digit code for the cache location.
+## getMd5 -- Input an ID and return an MD5 8-hex-digit cache ID.
 ##
 
 sub getMd5 {
-	my ($id, $cacheindex) = @_;
-	open (FILE, $cacheindex) or errorMessage("Cannot find cache index.");
+	my ($id, $cacheIndex) = @_;
+	open (FILE, $cacheIndex) or errorMessage("Cannot find cache index.");
 	my @headings;
 	while (my $line = <FILE>) {
 		next if $line =~ /^!/;
@@ -317,31 +319,36 @@ EOT
 
 ##############################
 ##
-## getTestPage -- Used (initially) for debugging.
+## sendTestPage -- Used for debugging.
 ##
 
-sub getTestPage {
-	my $output = <<"EOT";
+sub sendTestPage {
+	my ($id, $format) = @_;
+
+	print "Content-Type: text/html\n\n";
+	print <<"EOT";
 <html>
 <head>
-<title> TITLE </title>
+<title> INFO </title>
 </head>
 <body>
-<h1> CGI SCRIPT PAGE </h1>
-$OPTIONS{'id'}
-<h1> Env </h1>
+<h1> INFO </h1>
+<ul>
+<li> id: $id </li>
+<li> format: $format </li>
+</ul>
+<h1> ENV </h1>
 <table>
 EOT
 
 	foreach my $key (sort keys %ENV) {
-		$output .= "<tr>\n";
-		$output .= "<td>$key</td>\n";
-		$output .= "<td>$ENV{$key}</td>\n";
-		$output .= "</tr>\n";
+		print "<tr>\n";
+		print "<td>$key</td>\n";
+		print "<td>$ENV{$key}</td>\n";
+		print "</tr>\n";
 	}
-	$output .= "</table>\n</body>\n</html>\n";
-
-	return $output;
+	print "</table>\n</body>\n</html>\n";
+	exit(0);
 }
 
 
@@ -352,48 +359,26 @@ EOT
 ##      https://humdrum.nifc.pl/random
 ##   will return random kern data.  Also, specific format can be given:
 ##      https://humdrum.nifc.pl/random.krn
+##   and random data translations
 ##      https://humdrum.nifc.pl/random.mei
 ##      https://humdrum.nifc.pl/random.musicxml
 ##      https://humdrum.nifc.pl/random?format=krn
 ##      https://humdrum.nifc.pl/random?format=mei
 ##      https://humdrum.nifc.pl/random?format=musicxml
 ##
-##  Loading random file from repository into VHV:
+##  Loading random file into VHV:
 ##      https://verovio.humdrum.org/?file=https://data.nifc.humdrum.org/random
 ##
 
 sub sendRandomWork {
-	my $id = $OPTIONS{'id'};
-	my $format = getFormatFromId($id);
-	$format = $OPTIONS{"format"} if $format =~ /^\s*$/;
-	$format = "krn" if $format =~ /^\s*$/;
-
-	$format = cleanFormat($format);
-
-	my @list = getMd5List($cacheindex);
+	my ($format) = @_;
+	my @list = getMd5List($cacheIndex);
 	if (@list == 0) {
 		errorMessage("Cannot find MD5 list");
 	}
-
 	my $randIndex =  int(rand(@list));
 	my $md5 = $list[$randIndex];
-
 	sendDataContent($md5, $format);
-}
-
-
-
-##############################
-##
-## getFormatFromId --
-##
-
-sub getFormatFromId {
-	my ($id) = @_;
-	if ($id =~ /\.([a-zA-Z0-9_-]+)$/) {
-		return $1;
-	}
-	return "";
 }
 
 
@@ -404,8 +389,8 @@ sub getFormatFromId {
 ##
 
 sub getMd5List {
-	my ($cacheindex) = @_;
-	open (FILE, $cacheindex) or errorMessage("Cannot find cache index.");
+	my ($cacheIndex) = @_;
+	open (FILE, $cacheIndex) or errorMessage("Cannot find cache index.");
 	my @headings;
 	my @output;
 	my $md5index = -1;
@@ -433,11 +418,15 @@ sub getMd5List {
 
 ##############################
 ##
-## cleanFormat --
+## cleanFormat -- Change aliases to primary forms.
 ##
 
 sub cleanFormat {
 	my ($format) = @_;
+
+	# Remove any surrounding spaces
+	$format =~ s/^\s+//;
+	$format =~ s/\s+$//;
 
 	# Merge aliases for .krn ending:
 	$format = "krn" if $format =~ /^krn$/i;
@@ -459,7 +448,7 @@ sub cleanFormat {
 
 ##############################
 ##
-## cleanId --
+## cleanId -- Remove format information and optional _composer--work from POPC-2 filename-based IDs.
 ##
 
 sub cleanId {
@@ -471,6 +460,11 @@ sub cleanId {
 
 	# Remove any format appendix
 	$id =~ s/\.[a-zA-Z0-9_-]+$//;
+
+	# Remove _composer--title information for POPC-2:
+	if ($id =~ /^(pl-[^_]+)_.*$/) {
+		$id = $1;
+	}
 
 	return $id;
 }
