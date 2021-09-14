@@ -1,8 +1,9 @@
 Data server for https://humdrum.nifc.pl
 ===========================================
 
-This repository contains the files for the https://humdrum.nifc.pl
-website which serves data files for POPC-1 and POPC-2 projects at NIFC.
+This repository contains the files for the https://humdrum.nifc.pl website
+that serves score data files for POPC-1 and POPC-2 projects at NIFC.  Currently
+the data server is running from the URL https://data.nifc.humdrum.org .
 
 ## Primary files ##
 
@@ -90,6 +91,114 @@ There is also a command to do all of the above steps at one time:
 ```bash
 make update
 ```
+
+## URL data access ##
+
+Data files store in the cache can be accessed on the web via the following examples.
+
+(Replace https://data.nifc.humdrum.org with https://humdrum.nifc.pl when the
+server is placed in its final location);
+
+<dl>
+
+<dt> <a target="_blank" src="https://data.nifc.humdrum.org/pl-cz--iii-183">https://data.nifc.humdrum.org/pl-cz--iii-183</a>
+</dt>
+<dd>
+Return Humdrum data for FileID `pl-cz--iii-183`.
+</dd>
+
+<dt> <a target="_blank" src="https://data.nifc.humdrum.org/pl-cz--iii-183.krn">https://data.nifc.humdrum.org/pl-cz--iii-183.krn</a>
+</dt>
+<dd>
+Explicitly request Humdrum data (default behaving if no data format specified).
+</dd>
+
+<dt> <a target="_blank" src="https://data.nifc.humdrum.org/pl-cz--iii-183?format=krn">https://data.nifc.humdrum.org/pl-cz--iii-183?format=krn</a>
+</dt>
+<dd>
+Verbose request for Humdrum data using URL parameter.
+</dd>
+
+<dt> <a target="_blank" src="https://data.nifc.humdrum.org/pl-cz--iii-183?format=kern">https://data.nifc.humdrum.org/pl-cz--iii-183?format=kern</a>
+</dt>
+<dd>
+Alternate verbose request for Humdrum data using URL parameter.
+</dd>
+
+<dt> <a target="_blank" src="https://data.nifc.humdrum.org/pl-cz--iii-183.mei">https://data.nifc.humdrum.org/pl-cz--iii-183.mei</a>
+</dt>
+<dd>
+Request MEI conversion of file.
+</dd>
+
+<dt> <a target="_blank" src="https://data.nifc.humdrum.org/pl-cz--iii-183.musicxml">https://data.nifc.humdrum.org/pl-cz--iii-183.musicxml</a>
+</dt>
+<dd>
+Request MusicXML conversion of file.
+</dd>
+
+<dt> <a target="_blank" src="https://data.nifc.humdrum.org/pl-cz--iii-183.xml">https://data.nifc.humdrum.org/pl-cz--iii-183.xml</a>
+</dt>
+<dd>
+Alternate request MusicXML conversion of file.
+</dd>
+
+<dt> <a target="_blank" src="https://data.nifc.humdrum.org/pl-cz--iii-183_elsner-jozef--quoniam-in-me-speravit-in-b-op-30-a.krn">https://data.nifc.humdrum.org/pl-cz--iii-183_elsner-jozef--quoniam-in-me-speravit-in-b-op-30-a.krn</a>
+</dt>
+<dd>
+Full filename can be given (but from and after first `_` in filename will be ignored internally).
+</dd>
+
+<dt> <a target="_blank" src="https://data.nifc.humdrum.org/pl-cz--iii-183_elsner-jozef--quoniam-in-me-speravit-in-b-op-30-a.musicxml">https://data.nifc.humdrum.org/pl-cz--iii-183_elsner-jozef--quoniam-in-me-speravit-in-b-op-30-a.musicxml</a>
+</dt>
+<dd>
+Full filename access to MusicXML conversion.
+</dd>
+
+<dt> <a target="_blank" src="https://data.nifc.humdrum.org/18xx:25">https://data.nifc.humdrum.org/18xx:25</a>
+</dt>
+<dd>
+Use century ID to access data.
+</dd>
+
+<dt> <a target="_blank" src="https://data.nifc.humdrum.org/18xx:25.mei">https://data.nifc.humdrum.org/18xx:25.mei</a>
+</dt>
+<dd>
+Use century ID to access MEI conversion.
+</dd>
+
+<dt> <a target="_blank" src="https://data.nifc.humdrum.org/18xx:25?format=mei">https://data.nifc.humdrum.org/18xx:25?format=mei</a>
+</dt>
+<dd>
+Use century enumeration to access MEI conversion using format parameter.
+</dd>
+
+<dt> <a target="_blank" src="https://data.nifc.humdrum.org/1153">https://data.nifc.humdrum.org/1153</a>
+</dt>
+<dd>
+Use SQL enumeration to access data. (not yet implemented)
+</dd>
+
+<dt> <a target="_blank" src="https://data.nifc.humdrum.org/1153.krn">https://data.nifc.humdrum.org/1153.krn</a>
+</dt>
+<dd>
+Use SQL enumeration to access data, with embedded format. (not yet implemented)
+</dd>
+
+<dt> <a target="_blank" src="https://data.nifc.humdrum.org/random">https://data.nifc.humdrum.org/random</a>
+</dt>
+<dd>
+Get a random Humdrum file.
+</dd>
+
+<dt> <a target="_blank" src="https://data.nifc.humdrum.org/random.musicxml">https://data.nifc.humdrum.org/random.musicxml</a>
+</dt>
+<dd>
+Get a random MusicXML conversion.
+</dd>
+
+</dl>
+
 
 
 
