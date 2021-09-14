@@ -10,8 +10,8 @@ the data server is running from the URL https://data.nifc.humdrum.org .
 ## Primary files ##
 
 The primary data is stored in Humdrum files.  These are initially linked (or
-copied to the ./kern directory).   The `./Makefile` contains a list of the source
-location for all Humdrum files to be added to the `./kern` directory.  Then 
+copied to the ./kern directory).   The [./Makefile](https://github.com/craigsapp/data-nifc/blob/main/Makefile) contains
+a list of the source location for all Humdrum files to be added to the `./kern` directory.  Then
 the command:
 
 ```bash
@@ -26,7 +26,7 @@ the caching process can begin.
 
 ## Cache preparation ##
 
-The `./cache` directory stores a copy of the Humdrum data as well as 
+The `./cache` directory stores a copy of the Humdrum data as well as
 derivative formats and analyses created from each file.  An MD5 checksum
 is calculated for each Humdrum file to create an 8-digit ID for that file
 to uniquely identify the contents.  The Humdrum file is then copied to a
@@ -43,7 +43,7 @@ cd cache
 make index
 ```
 
-This will read all of the files in `./kern` to create the index 
+This will read all of the files in `./kern` to create the index
 file `./cache/index-new.hmd`.
 
 Next, copy the Humdrum files into the cache with this command:
@@ -76,7 +76,7 @@ make publish
 
 This will move `./cache/index.hmd` to `./cache/index-old.hmd` and then move
 `./cache/index-new.hmd` to `./cache/index.hmd`.   The file `./cache/index.hmd`
-is used to map various file identifier systems to the cached version of the 
+is used to map various file identifier systems to the cached version of the
 Humdrum file.
 
 Optionally, run the command:
@@ -170,11 +170,12 @@ RewriteRule ^/([^?]*)$ /cgi-bin/data-nifc?id=$1 [NC,PT,QSA]
 Header add Access-Control-Allow-Origin "*"
 ```
 
-The `Header` line is important in order to allow cross-origin access to the data files.
+The `Header` line is important in order to allow [cross-origin access](https://en.wikipedia.org/wiki/Cross-origin_resource_sharing) to
+the data files.
 
 The rewrite rules are used to simplify the URLs for data access.  Access to the data appears as if
 it were a static file, but the server converts this filename into an id parameter that is passed
-on to the `data-nifc` CGI script.
+on to the [data-nifc](https://github.com/craigsapp/data-nifc/blob/main/cgi-bin/data-nifc.pl) CGI script.
 
 
 
@@ -182,7 +183,7 @@ on to the `data-nifc` CGI script.
 
 The interface between the URL and internal access to data is done with
 the CGI script [cgi-bin/data-nifc.pl](https://github.com/craigsapp/data-nifc/blob/main/cgi-bin/data-nifc.pl).  Copy
-this file (via [cgi-bin/Makefile](https://github.com/craigsapp/data-nifc/blob/main/cgi-bin/Makefile)) to the 
+this file (via [cgi-bin/Makefile](https://github.com/craigsapp/data-nifc/blob/main/cgi-bin/Makefile)) to the
 location for CGI scripts for the server.
 
 
