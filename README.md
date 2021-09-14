@@ -10,8 +10,13 @@ the data server is running from the URL https://data.nifc.humdrum.org .
 ## Primary files ##
 
 The primary data is stored in Humdrum files.  These are initially linked (or
-copied to the ./kern directory).   The [./Makefile](https://github.com/craigsapp/data-nifc/blob/main/Makefile) contains
-a list of the source location for all Humdrum files to be added to the `./kern` directory.  Then
+less preferrably copied) to the `./kern` directory).   The [./Makefile](https://github.com/craigsapp/data-nifc/blob/main/Makefile) contains
+a list of the source location for all Humdrum files to be added to the `./kern` directory.    Adjust the `KERNREPOS` variable
+in the Makefile to point to directories in POPC-1 and POPC-2 that contain source Humdrum files that will be managed by 
+the server.
+
+
+Then
 the command:
 
 ```bash
@@ -33,7 +38,7 @@ to uniquely identify the contents.  The Humdrum file is then copied to a
 subdirectory named with that ID.  All translations and analysis files
 related to the Humdrum file are also placed in the same subdirectory.
 
-Commands to prepare the Cache:
+### Cache maintantnce commands ###
 
 First, create an index that maps file IDs, century enumerations and SQL enumerations
 that link to the MD5-derived cache ID:
@@ -97,7 +102,7 @@ make update
 
 ## URL data access ##
 
-Data files store in the cache can be accessed on the web via the following examples.
+Data files store in the cache can be accessed on the web via the following example URLs.
 
 (Replace https://data.nifc.humdrum.org with https://humdrum.nifc.pl when the
 server is placed in its final location).
@@ -132,10 +137,10 @@ server is placed in its final location).
 <dd> Full filename access to MusicXML conversion. </dd>
 
 <dt> <a href="https://data.nifc.humdrum.org/18xx:25">https://data.nifc.humdrum.org/18xx:25</a> </dt>
-<dd markdown="1"> Use century ID `18xx:25` to access data. </dd>
+<dd markdown="1"> Use century enumeration `18xx:25` to access data. </dd>
 
 <dt> <a href="https://data.nifc.humdrum.org/18xx:25.mei">https://data.nifc.humdrum.org/18xx:25.mei</a> </dt>
-<dd> Use century ID to access MEI conversion. </dd>
+<dd> Use century enumeration to access MEI conversion. </dd>
 
 <dt> <a href="https://data.nifc.humdrum.org/18xx:25?format=mei">https://data.nifc.humdrum.org/18xx:25?format=mei</a> </dt>
 <dd> Use century enumeration to access MEI conversion using format parameter. </dd>
