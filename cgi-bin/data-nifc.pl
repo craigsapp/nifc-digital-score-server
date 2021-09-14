@@ -20,6 +20,7 @@ use strict;
 my $basedir    = "/project/data-nifc/data-nifc";
 my $cachedir   = "$basedir/cache";
 my $cacheindex = "$cachedir/index.hmd";
+my $cacheDepth = 1;
 
 ##
 ##############################
@@ -39,6 +40,8 @@ if ($OPTIONS{"id"} eq "test") {
 	print "Content-Type: text/html\n\n";
 	print $testpage;
 	exit(0);
+} elsif ($OPTIONS{"id"} =~ /^random(\.?|$)/) {
+	sendRandomWork();
 }
 
 if ($OPTIONS{"id"} =~ /^([0-9a-zA-Z:_-]+)\.([0-9a-zA-Z_-]+)$/) {
@@ -99,22 +102,8 @@ sub processSimpleParameter {
 		$id = $1;
 	}
 
-	# Remove any spaces around ID:
-	$id =~ s/^\s+//;
-	$id =~ s/\s+$//;
-
-	# Merge aliases for .krn ending:
-	$format = "krn" if $format =~ /^krn$/i;
-	$format = "krn" if $format =~ /^kern$/i;
-	$format = "krn" if $format =~ /^hmd$/i;
-	$format = "krn" if $format =~ /^humdrum$/i;
-
-	# Merge aliases for .mei ending:
-	$format = "mei" if $format =~ /^mei$/i;
-
-	# Merge aliases for .musicxml ending:
-	$format = "musicxml" if $format =~ /^musicxml$/i;
-	$format = "musicxml" if $format =~ /^xml$/i;
+	$format = cleanFormat($format);
+	$id     = cleanId($id);
 
 	errorMessage("ID is empty.") if $id =~ /^\s*$/;
 	errorMessage("ID cannot contain only periods.") if $id =~ /^\.+$/;
@@ -144,51 +133,112 @@ sub sendDataContent {
 	my ($md5, $format) = @_;
 	errorMessage("Bad MD5 tag $md5") if $md5 !~ /^[0-9a-f]{8}$/;
 
-	my $cdir = getCacheSubdir($md5, 1);
-
 	if ($format eq "krn") {
-
-		my $filename = "$cachedir/$cdir/$md5.krn";
-		if (!-r $filename) {
-			errorMessage("Cannot find $cdir/$md5.krn");
-		}
-		open(FILE, $filename) or errorMessage("Cannot read $cdir/$md5.krn");
-		my $data = "";
-		while (my $line = <FILE>) {
-			$data .= $line;
-		}
-		close FILE;
-		print "Content-Type: text/plain\n\n";
-		print $data;
-		exit(0);
-
+		sendHumdrumContent($md5);
 	} elsif ($format eq "mei") {
-		# MEI data is stored in bzip2-compressed file.  If the browser
-		# accepts gzip compressed data, send the compressed form of the data;
-		# otherwise, unzip and send as plain text.
-		my $compressQ = 0;
-		$compressQ = 1 if $ENV{'HTTP_ACCEPT_ENCODING'} =~ /\bgzip\b/;
-		if (!-r "$cachedir/$cdir/$md5.mei.gz") {
-			errorMessage("MEI file is missing for $OPTIONS{'id'}.\n");
-		}
-		if ($compressQ) {
-			my $data = `cat "$cachedir/$cdir/$md5.mei.gz"`;
-			print "Content-Type: text/plain\n";
-			print "Content-Encoding: gzip\n";
-			print "\n";
-			print $data;
-			exit(0);
-		} else {
-			my $data = `zcat "$cachedir/$cdir/$md5.mei.gz"`;
-			print "Content-Type: text/plain\n\n";
-			print $data;
-			exit(0);
-		}
+		sendMeiContent($md5);
 	} elsif ($format eq "musicxml") {
-		errorMessage("$format NOT YET IMPLEMENTED");
+		sendMusicxmlContent($md5);
 	} else {
 		errorMessage("Unknown data format: $format");
 	}
+}
+
+
+
+##############################
+##
+## sendHumdrumContent --
+##
+
+sub sendHumdrumContent {
+	my ($md5) = @_;
+	my $cdir = getCacheSubdir($md5, $cacheDepth);
+	my $filename = "$cachedir/$cdir/$md5.krn";
+	if (!-r $filename) {
+		errorMessage("Cannot find $cdir/$md5.krn");
+	}
+	open(FILE, $filename) or errorMessage("Cannot read $cdir/$md5.krn");
+	my $data = "";
+	while (my $line = <FILE>) {
+		$data .= $line;
+	}
+	close FILE;
+	print "Content-Type: text/plain\n\n";
+	print $data;
+	exit(0);
+}
+
+
+
+##############################
+##
+## sendMeiContent --
+##
+
+sub sendMeiContent {
+	my ($md5) = @_;
+	my $cdir = getCacheSubdir($md5, $cacheDepth);
+	my $format = "mei";
+	my $mime = "text/plain";
+
+	# MEI data is stored in gzip-compressed file.  If the browser
+	# accepts gzip compressed data, send the compressed form of the data;
+	# otherwise, unzip and send as plain text.
+	my $compressQ = 0;
+	$compressQ = 1 if $ENV{'HTTP_ACCEPT_ENCODING'} =~ /\bgzip\b/;
+	if (!-r "$cachedir/$cdir/$md5.$format.gz") {
+		errorMessage("MEI file is missing for $OPTIONS{'id'}.\n");
+	}
+	if ($compressQ) {
+		my $data = `cat "$cachedir/$cdir/$md5.$format.gz"`;
+		print "Content-Type: $mime\n";
+		print "Content-Encoding: gzip\n";
+		print "\n";
+		print $data;
+		exit(0);
+	}
+
+	my $data = `zcat "$cachedir/$cdir/$md5.$format.gz"`;
+	print "Content-Type: $mime\n\n";
+	print $data;
+	exit(0);
+}
+
+
+
+##############################
+##
+## sendMusicxmlContent --
+##
+
+sub sendMusicxmlContent {
+	my ($md5) = @_;
+	my $cdir = getCacheSubdir($md5, $cacheDepth);
+	my $format = "musicxml";
+	my $mime = "text/plain";
+
+	# MusicXML data is stored in gzip-compressed file.  If the browser
+	# accepts gzip compressed data, send the compressed form of the data;
+	# otherwise, unzip and send as plain text.
+	my $compressQ = 0;
+	$compressQ = 1 if $ENV{'HTTP_ACCEPT_ENCODING'} =~ /\bgzip\b/;
+	if (!-r "$cachedir/$cdir/$md5.$format.gz") {
+		errorMessage("MusicXML file is missing for $OPTIONS{'id'}.\n");
+	}
+	if ($compressQ) {
+		my $data = `cat "$cachedir/$cdir/$md5.$format.gz"`;
+		print "Content-Type: $mime\n";
+		print "Content-Encoding: gzip\n";
+		print "\n";
+		print $data;
+		exit(0);
+	}
+
+	my $data = `zcat "$cachedir/$cdir/$md5.$format.gz"`;
+	print "Content-Type: $mime\n\n";
+	print $data;
+	exit(0);
 }
 
 
@@ -232,6 +282,7 @@ sub getMd5 {
 		next if $line =~ /^\*/;
 		next if $line =~ /^\s*$/;
 		next if $line !~ /^([^\t]+).*\t($id)(\t|$)/;
+		close FILE;
 		return $1;
 	}
 	close FILE;
@@ -292,5 +343,137 @@ EOT
 
 	return $output;
 }
+
+
+
+##############################
+##
+## sendRandomWork -- The URL:
+##      https://humdrum.nifc.pl/random
+##   will return random kern data.  Also, specific format can be given:
+##      https://humdrum.nifc.pl/random.krn
+##      https://humdrum.nifc.pl/random.mei
+##      https://humdrum.nifc.pl/random.musicxml
+##      https://humdrum.nifc.pl/random?format=krn
+##      https://humdrum.nifc.pl/random?format=mei
+##      https://humdrum.nifc.pl/random?format=musicxml
+##
+##  Loading random file from repository into VHV:
+##      https://verovio.humdrum.org/?file=https://data.nifc.humdrum.org/random
+##
+
+sub sendRandomWork {
+	my $id = $OPTIONS{'id'};
+	my $format = getFormatFromId($id);
+	$format = $OPTIONS{"format"} if $format =~ /^\s*$/;
+	$format = "krn" if $format =~ /^\s*$/;
+
+	$format = cleanFormat($format);
+
+	my @list = getMd5List($cacheindex);
+	if (@list == 0) {
+		errorMessage("Cannot find MD5 list");
+	}
+
+	my $randIndex =  int(rand(@list));
+	my $md5 = $list[$randIndex];
+
+	sendDataContent($md5, $format);
+}
+
+
+
+##############################
+##
+## getFormatFromId --
+##
+
+sub getFormatFromId {
+	my ($id) = @_;
+	if ($id =~ /\.([a-zA-Z0-9_-]+)$/) {
+		return $1;
+	}
+	return "";
+}
+
+
+
+##############################
+##
+## getMd5List --
+##
+
+sub getMd5List {
+	my ($cacheindex) = @_;
+	open (FILE, $cacheindex) or errorMessage("Cannot find cache index.");
+	my @headings;
+	my @output;
+	my $md5index = -1;
+	while (my $line = <FILE>) {
+		next if $line =~ /^!/;
+		chomp $line;
+		if ($line =~ /^\*\*/) {
+			my @headings = split(/\t+/, $line);
+			for (my $i=0; $i<@headings; $i++) {
+				$md5index = $i if $headings[$i] eq "**md5";
+			}
+			next;
+		}
+		next if $line =~ /^\*/;
+		next if $line =~ /^\s*$/;
+		next if $md5index < 0;
+		my @data = split(/\t+/, $line);
+		$output[@output] = $data[$md5index];
+	}
+	close FILE;
+	return @output;
+}
+
+
+
+##############################
+##
+## cleanFormat --
+##
+
+sub cleanFormat {
+	my ($format) = @_;
+
+	# Merge aliases for .krn ending:
+	$format = "krn" if $format =~ /^krn$/i;
+	$format = "krn" if $format =~ /^kern$/i;
+	$format = "krn" if $format =~ /^hmd$/i;
+	$format = "krn" if $format =~ /^humdrum$/i;
+
+	# Merge aliases for .mei ending:
+	$format = "mei" if $format =~ /^mei$/i;
+
+	# Merge aliases for .musicxml ending:
+	$format = "musicxml" if $format =~ /^musicxml$/i;
+	$format = "musicxml" if $format =~ /^xml$/i;
+
+	return $format;
+}
+
+
+
+##############################
+##
+## cleanId --
+##
+
+sub cleanId {
+	my ($id) = @_;
+
+	# Remove any spaces around ID:
+	$id =~ s/^\s+//;
+	$id =~ s/\s+$//;
+
+	# Remove any format appendix
+	$id =~ s/\.[a-zA-Z0-9_-]+$//;
+
+	return $id;
+}
+
 
 

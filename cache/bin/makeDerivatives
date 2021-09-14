@@ -10,7 +10,6 @@
 #
 # Specific derivatives:
 #    mei      == Create MEI file (using verovio)
-# To do:
 #    musicxml == Create MusicXML file (using converter21)
 #
 
@@ -25,7 +24,7 @@ GetOptions (
    'f|force' => \$forceQ
 );
 
-$derivatives = "mei" if $derivatives =~ /^\s*$/;
+$derivatives = "mei,musicxml" if $derivatives =~ /^\s*$/;
 
 $derivatives =~ s/^[^0-9a-zA-Z_-]+//;
 $derivatives =~ s/[^0-9a-zA-Z_-]+$//;

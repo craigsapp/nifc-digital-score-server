@@ -127,6 +127,12 @@ generate-mei:
 regenerate-mei:
 	bin/makeDerivatives -f -d mei
 
+generate-musicxml:
+	bin/makeDerivatives -d musicxml
+
+regenerate-musicxml:
+	bin/makeDerivatives -f -d musicxml
+
 
 
 
