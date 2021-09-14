@@ -5,6 +5,8 @@ This repository contains the files for the https://humdrum.nifc.pl website
 that serves score data files for POPC-1 and POPC-2 projects at NIFC.  Currently
 the data server is running from the URL https://data.nifc.humdrum.org .
 
+
+
 ## Primary files ##
 
 The primary data is stored in Humdrum files.  These are initially linked (or
@@ -19,6 +21,7 @@ make kern
 Creates symbolic links from the source locations into the `./kern`
 directory.  Once links to Humdrum files are in the `./kern` directory,
 the caching process can begin.
+
 
 
 ## Cache preparation ##
@@ -151,6 +154,65 @@ server is placed in its final location).
 
 </dl>
 
+
+
+## Setup ##
+
+
+### Apache web server ###
+
+An example Apache web server configuration is given in [cgi-bin/apache.config](https://github.com/craigsapp/data-nifc/blob/main/cgi-bin/apache.config).  The important part of the configuration is:
+
+```apache
+RewriteEngine On
+RewriteRule ^/([^?]*\?(.*))$ /cgi-bin/data-nifc?id=$1&$2 [NC,PT,QSA]
+RewriteRule ^/([^?]*)$ /cgi-bin/data-nifc?id=$1 [NC,PT,QSA]
+Header add Access-Control-Allow-Origin "*"
+```
+
+The `Header` line is important in order to allow cross-origin access to the data files.
+
+The rewrite rules are used to simplify the URLs for data access.  Access to the data appears as if
+it were a static file, but the server converts this filename into an id parameter that is passed
+on to the `data-nifc` CGI script.
+
+
+
+### CGI script ###
+
+The interface between the URL and internal access to data is done with
+the CGI script [cgi-bin/data-nifc.pl](https://github.com/craigsapp/data-nifc/blob/main/cgi-bin/data-nifc.pl).  Copy
+this file (via [cgi-bin/Makefile](https://github.com/craigsapp/data-nifc/blob/main/cgi-bin/Makefile)) to the 
+location for CGI scripts for the server.
+
+
+
+### Support software  ###
+
+Here is a description of support software needed to create derivatives files for the cache.
+
+
+#### verovio ####
+
+Install verovio on the server with these commands:
+
+```bash
+	git clone https://github.com/rism-digita/verovio
+	cd verovio/tools
+	./.configure
+	make
+	make install
+```
+
+Note that cmake is required (and must first be installed if not available).
+
+Verify that verovio was installed by running the command:
+
+```bash
+which verovio
+```
+
+which should reply `/usr/local/bin/verovio`.
 
 
 
