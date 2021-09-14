@@ -203,7 +203,7 @@ Here is a description of support software needed to create derivatives files for
 Install verovio on the server with these commands:
 
 ```bash
-git clone https://github.com/rism-digita/verovio
+git clone https://github.com/rism-digital/verovio
 cd verovio/tools
 ./.configure
 make
