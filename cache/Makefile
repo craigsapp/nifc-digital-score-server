@@ -69,6 +69,7 @@ copy-kern:
 ## derivatives -- 
 ##
 
+derivative: derivatives
 derivatives:
 	bin/makeDerivatives
 
