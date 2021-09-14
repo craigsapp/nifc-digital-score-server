@@ -97,9 +97,9 @@ make update
 Data files store in the cache can be accessed on the web via the following examples.
 
 (Replace https://data.nifc.humdrum.org with https://humdrum.nifc.pl when the
-server is placed in its final location);
+server is placed in its final location).
 
-<dl>
+<dl markdown="1">
 
 <dt> <a href="https://data.nifc.humdrum.org/pl-cz--iii-183">https://data.nifc.humdrum.org/pl-cz--iii-183</a> </dt>
 <dd markdown="1"> Return Humdrum data for FileID `pl-cz--iii-183`. </dd>
