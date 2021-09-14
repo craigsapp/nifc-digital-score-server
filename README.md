@@ -10,7 +10,7 @@ the data server is running from the URL https://data.nifc.humdrum.org .
 ## Primary files ##
 
 The primary data is stored in Humdrum files.  These are initially linked (or
-less preferrably copied) to the `./kern` directory).   The [./Makefile](https://github.com/craigsapp/data-nifc/blob/main/Makefile) contains
+less preferably copied) to the `./kern` directory).   The [./Makefile](https://github.com/craigsapp/data-nifc/blob/main/Makefile) contains
 a list of the source location for all Humdrum files to be added to the `./kern` directory.    Adjust the `KERNREPOS` variable
 in the Makefile to point to directories in POPC-1 and POPC-2 that contain source Humdrum files that will be managed by 
 the server.
@@ -38,7 +38,7 @@ to uniquely identify the contents.  The Humdrum file is then copied to a
 subdirectory named with that ID.  All translations and analysis files
 related to the Humdrum file are also placed in the same subdirectory.
 
-### Cache maintantnce commands ###
+### Cache maintenance commands ###
 
 First, create an index that maps file IDs, century enumerations and SQL enumerations
 that link to the MD5-derived cache ID:
