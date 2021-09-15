@@ -71,7 +71,8 @@ sub purgeDirectory {
 				rmtree("$targetdir/$dir") or die "Cannot delete $targetdir/$dir\n";
 			}
 			print "Moving $basedir/$dir to $targetdir\n";
-			move("$basedir/$dir", $targetdir);
+			`mv "$basedir/$dir" "$targetdir"`;
+			# move("$basedir/$dir", $targetdir);
 		}
 	}
 	foreach my $dir (sort @subdirs) {

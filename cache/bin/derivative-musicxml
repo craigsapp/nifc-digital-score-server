@@ -12,8 +12,6 @@
 use strict;
 use Getopt::Long;
 
-print STDERR "XXX GOT HERE\n";
-
 my $forceQ = 0;
 Getopt::Long::Configure("bundling");
 GetOptions (
