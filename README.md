@@ -221,4 +221,19 @@ which verovio
 which should reply `/usr/local/bin/verovio`.
 
 
+## SELinux notes ##
+
+To allow CGI scripts to run programs in a shell, turn on the general permission with
+the command:
+
+```bash
+setsebool -P httpd_execmem 1
+```
+
+Then give permissions to run a particular program:
+
+```bash
+chcon system_u:object_r:httpd_exec_t:s0 program-file
+```
+
 

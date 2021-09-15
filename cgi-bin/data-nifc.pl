@@ -72,10 +72,15 @@ exit(0);
 sub splitFormatFromId {
 	my $id = $OPTIONS{"id"};
 	my $format = $OPTIONS{"format"};
+
 	my $newformat = "";
-	if ($id =~ s/\.([0-9a-zA-Z_-]+)$//) {
+	if ($id =~ /^([^\/]+)\/([^\/]+)$/) {
+		$id = $1;
+		$newformat = $2;
+	} elsif ($id =~ s/\.([0-9a-zA-Z_-]+)$//) {
 		$newformat = $1;
 	}
+
 	if ($newformat !~ /^\s*$/) {
 		if ($format =~ /^\s*$/) {
 			$format = $newformat;
@@ -113,15 +118,22 @@ sub processParameters {
 	my $md5 = getMd5($id, $cacheIndex);
 	errorMessage("Entry for $id was not found.") if $md5 =~ /^[.\s]*$/;
 
+	# cached formats
 	if ($format eq "krn") {
-		sendDataContent($md5, "krn");
+		sendDataContent($md5, $format);
 	} elsif ($format eq "mei") {
-		sendDataContent($md5, "mei");
+		sendDataContent($md5, $format);
 	} elsif ($format eq "musicxml") {
-		sendDataContent($md5, "musicxml");
-	} else {
-		errorMessage("Unknown data format: $format");
+		sendDataContent($md5, $format);
+	} 
+
+	# dynamic formats
+	if ($format eq "lyrics") {
+		sendDataContent($md5, $format);
 	}
+
+
+	errorMessage("Unknown data format: $format");
 }
 
 
@@ -135,15 +147,21 @@ sub sendDataContent {
 	my ($md5, $format) = @_;
 	errorMessage("Bad MD5 tag $md5") if $md5 !~ /^[0-9a-f]{8}$/;
 
+	# Statically generated data formats:
 	if ($format eq "krn") {
 		sendHumdrumContent($md5);
 	} elsif ($format eq "mei") {
 		sendMeiContent($md5);
 	} elsif ($format eq "musicxml") {
 		sendMusicxmlContent($md5);
-	} else {
-		errorMessage("Unknown data format: $format");
 	}
+
+	# Dynamically generated data formats:
+	if ($format eq "lyrics") {
+		sendLyricsContent($md5);
+	}
+
+	errorMessage("Unknown data format B: $format");
 }
 
 
@@ -239,6 +257,25 @@ sub sendMusicxmlContent {
 
 	my $data = `zcat "$cachedir/$cdir/$md5.$format.gz"`;
 	print "Content-Type: $mime\n\n";
+	print $data;
+	exit(0);
+}
+
+
+
+##############################
+##
+## sendLyricsContent --
+##
+
+sub sendLyricsContent {
+	my ($md5) = @_;
+	my $cdir = getCacheSubdir($md5, $cacheDepth);
+	my $command = "$cachedir/bin/lyrics -hbv \"$cachedir/$cdir/$md5.krn\"";
+	my $data = `$command`;
+	print "Content-Type: text/html; charset=utf-8\n";
+	print "Content-Disposition: inline; filename=\"$OPTIONS{'id'}-lyrics.html\"\n";
+	print "\n";
 	print $data;
 	exit(0);
 }
