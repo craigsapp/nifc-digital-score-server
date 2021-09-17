@@ -5,6 +5,7 @@
 # Last Modified: Sun Sep 12 11:26:58 PDT 2021
 # Filename:      nifc-humdrum-data/cache/bin/makeDerivatives
 # Syntax:        perl 5
+# vi:            ts=3
 #
 # Description:   Create derivative files from cached Humdrum files.
 #
@@ -17,11 +18,13 @@ use strict;
 use Getopt::Long;
 
 my $derivatives;
-my $forceQ = 0;
+my $forceQ   = 0;
+my $reverseQ = 0;
 Getopt::Long::Configure("bundling");
 GetOptions (
-   'd|derivative|derivatives=s' => \$derivatives,
-   'f|force' => \$forceQ
+	'd|derivative|derivatives=s' => \$derivatives,
+	'f|force'   => \$forceQ,
+	'r|reverse' => \$reverseQ
 );
 
 $derivatives = "mei,musicxml" if $derivatives =~ /^\s*$/;
@@ -40,22 +43,42 @@ if ($bindir !~ /\/bin$/) {
 
 die "ERROR: Cannot find bin directory $bindir\n" if !-d $bindir;
 
-prepareDerivatives("0");
-prepareDerivatives("1");
-prepareDerivatives("2");
-prepareDerivatives("3");
-prepareDerivatives("4");
-prepareDerivatives("5");
-prepareDerivatives("6");
-prepareDerivatives("7");
-prepareDerivatives("8");
-prepareDerivatives("9");
-prepareDerivatives("a");
-prepareDerivatives("b");
-prepareDerivatives("c");
-prepareDerivatives("d");
-prepareDerivatives("e");
-prepareDerivatives("f");
+
+if ($reverseQ) {
+	prepareDerivatives("f");
+	prepareDerivatives("e");
+	prepareDerivatives("d");
+	prepareDerivatives("c");
+	prepareDerivatives("b");
+	prepareDerivatives("a");
+	prepareDerivatives("9");
+	prepareDerivatives("8");
+	prepareDerivatives("7");
+	prepareDerivatives("6");
+	prepareDerivatives("5");
+	prepareDerivatives("4");
+	prepareDerivatives("3");
+	prepareDerivatives("2");
+	prepareDerivatives("1");
+	prepareDerivatives("0");
+} else {
+	prepareDerivatives("0");
+	prepareDerivatives("1");
+	prepareDerivatives("2");
+	prepareDerivatives("3");
+	prepareDerivatives("4");
+	prepareDerivatives("5");
+	prepareDerivatives("6");
+	prepareDerivatives("7");
+	prepareDerivatives("8");
+	prepareDerivatives("9");
+	prepareDerivatives("a");
+	prepareDerivatives("b");
+	prepareDerivatives("c");
+	prepareDerivatives("d");
+	prepareDerivatives("e");
+	prepareDerivatives("f");
+}
 
 exit(0);
 
@@ -82,11 +105,20 @@ sub prepareDerivatives {
 			$md5dirs[@md5dirs] = $file;
 		}
 	}
-	foreach my $md5 (sort @md5dirs) {
-		prepareDerivativesForEntry($basedir, $md5);
-	}
-	foreach my $dir (sort @subdirs) {
-		prepareDerivatives("$basedir/$dir");
+	if ($reverseQ) {
+		foreach my $md5 (sort { $b <=> $a } @md5dirs) {
+			prepareDerivativesForEntry($basedir, $md5);
+		}
+		foreach my $dir (sort { $b <=> $a } @subdirs) {
+			prepareDerivatives("$basedir/$dir");
+		}
+	} else {
+		foreach my $md5 (sort { $a <=> $b } @md5dirs) {
+			prepareDerivativesForEntry($basedir, $md5);
+		}
+		foreach my $dir (sort { $a <=> $b } @subdirs) {
+			prepareDerivatives("$basedir/$dir");
+		}
 	}
 }
 
@@ -118,7 +150,6 @@ sub prepareDerivativesForEntry {
 		`$command`;
 	}
 }
-
 
 
 
