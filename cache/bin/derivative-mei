@@ -3,10 +3,13 @@
 # Programmer:    Craig Stuart Sapp <craig.stanford.edu>
 # Creation Date: Sun Sep 12 11:31:23 PDT 2021
 # Last Modified: Sun Sep 12 11:31:25 PDT 2021
-# Filename:      nifc-humdrum-data/cache/bin/derivative-mei
+# Filename:      cache/bin/derivative-mei
 # Syntax:        perl 5
 #
 # Description:   Create MEI file from Humdrum file.
+#
+# Options:
+#     -f   == Force recalculation of derivative files (overwrite).
 #
 
 use strict;
@@ -45,8 +48,10 @@ die "ERROR: Cannot locate gzip command\n" if $gzip =~ /^\s*$/;
 
 
 `$verovio $inputfile -atmei -o $outputfile`;
-`$gzip $outputfile`;
 
+# Maybe also check if file contains some expected XML elements.
+#
+`$gzip $outputfile`;
 
 
 

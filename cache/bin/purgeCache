@@ -2,45 +2,88 @@
 #
 # Programmer:    Craig Stuart Sapp <craig.stanford.edu>
 # Creation Date: Sun Sep 12 10:43:54 PDT 2021
-# Last Modified: Sun Sep 12 10:43:57 PDT 2021
+# Last Modified: Fri 17 Sep 2021 07:03:07 AM PDT
 # Filename:      nifc-humdrum-data/cache/bin/purgeCache
 # Syntax:        perl 5
+# vim:           ts=3
 #
 # Description:   Remove old cache entries from cache.
 #
+# Options:
+#
+# -u          == Unpurge directories in purge area.
+# -i index    == Index file to check for directories
+#                that need to be purged.
+# -p dir      == Directory to place purged cache directories.
+#
 
 use strict;
+use Getopt::Long;
 use File::Copy;
 use File::Path;
 
-my $targetdir = "purged";
-die "ERROR $targetdir is empty" if $targetdir =~ /^\s*$/;
-die "ERROR $targetdir is invalid" if $targetdir =~ /^[.\/]+/;
+my $indexfile;
+my $purgedir;
+my $undoQ = 0;
+Getopt::Long::Configure("bundling");
+GetOptions (
+	"u|undo"     => \$undoQ,
+	"i|index"    => \$indexfile,
+	"p|purgedir" => \$purgedir
+);
 
-my $indexfile = "index.hmd";
+$purgedir = "purged" if $purgedir =~ /^\s*$/;
+die "ERROR $purgedir is empty" if $purgedir =~ /^\s*$/;
+die "ERROR $purgedir is invalid" if $purgedir =~ /^[.\/]+/;
+
+$indexfile = "index.hmd" if $indexfile =~ /^\s*$/;
+
 my %index = getIndex($indexfile);
 
-purgeDirectory("0");
-purgeDirectory("1");
-purgeDirectory("2");
-purgeDirectory("3");
-purgeDirectory("4");
-purgeDirectory("5");
-purgeDirectory("6");
-purgeDirectory("7");
-purgeDirectory("8");
-purgeDirectory("9");
-purgeDirectory("a");
-purgeDirectory("b");
-purgeDirectory("c");
-purgeDirectory("d");
-purgeDirectory("e");
-purgeDirectory("f");
+# Cache depth (number of subdirectory levels until file directories).
+my $cacheDepth = 1;
+$cacheDepth = 1 if $cacheDepth < 1;
+$cacheDepth = 1 if $cacheDepth > 3;
+
+my $groups = "0123456789abcdef";
+my @dirs = split(//, $groups);
+
+if ($undoQ) {
+	unpurge();
+} else {
+	foreach my $dir (@dirs) {
+		purgeDirectory($dir);
+	}
+}
+
 
 exit(0);
 
 
 ##########################################################################
+
+
+##############################
+##
+## unpurge -- Move entries in the purged directory back into the cache
+##     (if there is not already a directory for it present in the cache).
+##
+
+sub unpurge {
+	my @purged = glob("$purgedir/*");
+	foreach my $purgeEntry (@purged) {
+		next if $purgeEntry !~ /\/([0-9a-f]{8})$/;
+		my $id = $1;
+		my $basedir = getTargetDir($id, $cacheDepth);
+		if (-d $basedir) {
+			print STDERR "Skiping $id since it is already in the cache\n";
+			next;
+		}
+		print STDERR "Moving $purgeEntry to $basedir\n";
+		`mv "$purgeEntry" "$basedir"`;
+	}
+}
+
 
 
 ##############################
@@ -66,13 +109,13 @@ sub purgeDirectory {
 	foreach my $dir (sort @md5dirs) {
 		if ($index{$dir} =~ /^\s*$/) {
 			# orphaned cached entry
-			if (-d "$targetdir/$dir") {
-				print "Deleting old purged file $targetdir/$dir\n";
-				rmtree("$targetdir/$dir") or die "Cannot delete $targetdir/$dir\n";
+			if (-d "$purgedir/$dir") {
+				print "Deleting old purged file $purgedir/$dir\n";
+				rmtree("$purgedir/$dir") or die "Cannot delete $purgedir/$dir\n";
 			}
-			print "Moving $basedir/$dir to $targetdir\n";
-			`mv "$basedir/$dir" "$targetdir"`;
-			# move("$basedir/$dir", $targetdir);
+			print "Moving $basedir/$dir to $purgedir\n";
+			`mv "$basedir/$dir" "$purgedir"`;
+			# move("$basedir/$dir", $purgedir);
 		}
 	}
 	foreach my $dir (sort @subdirs) {
@@ -118,5 +161,25 @@ sub getIndex {
 	}
 	return %output;
 }
+
+
+
+##############################
+##
+## getTargetDir --
+##
+
+sub getTargetDir {
+	my ($md5, $cacheDepth) = @_;
+	return $md5 if $cacheDepth == 0;
+	my @pieces = split(//, $md5);
+	my $output = "";
+	for (my $i=0; $i<$cacheDepth; $i++) {
+		$output .= $pieces[$i] . "/";
+	}
+	$output .= $md5;
+	return $output;
+}
+
 
 

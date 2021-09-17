@@ -2,16 +2,34 @@
 #
 # Programmer:    Craig Stuart Sapp <craig.stanford.edu>
 # Creation Date: Sun Sep 12 11:26:56 PDT 2021
-# Last Modified: Sun Sep 12 11:26:58 PDT 2021
-# Filename:      nifc-humdrum-data/cache/bin/makeDerivatives
+# Last Modified: Fri 17 Sep 2021 12:38:51 AM PDT
+# Filename:      cache/bin/makeDerivatives
 # Syntax:        perl 5
 # vi:            ts=3
 #
 # Description:   Create derivative files from cached Humdrum files.
 #
-# Specific derivatives:
-#    mei      == Create MEI file (using verovio)
-#    musicxml == Create MusicXML file (using converter21)
+# Options:
+#    -f            == Force regeneration of all derivative files.  If this
+#                     option is not given, only missing derivative files will
+#                     be prepared and existing ones will not be overwritten.
+#    -r            == Reverse the order of derivative preparation.  This can
+#                     be used to make the derivatives in two separate threads.
+#    -g groups     == Cache ID groups to prepare derivatives for.  This allows
+#                     for up to 16 independent threads to prepare derivatives.
+#                     Example: prepare groups where MD5 ID starts with 1, 4, 6, and b:
+#                         -g 146b
+#    -d derivative == Prepare derivatives of a certain type.  If no
+#                     specific derivative given, then prepare all
+#                     derivatives.  Allowed derivative types:
+#                        mei      == Create MEI file (using verovio)
+#                        musicxml == Create MusicXML file (using converter21)
+#
+# Each derivative is made with a separate script in the form derivative-*:
+#     derivative-mei       == Creates MEI files.
+#     derivative-musicxml  == Creates MusicXML files.
+#
+# Other dynamic-content files are generated on-the-fly by the CGI script.
 #
 
 use strict;
@@ -20,19 +38,22 @@ use Getopt::Long;
 my $derivatives;
 my $forceQ   = 0;
 my $reverseQ = 0;
+my $groups   = "";
 Getopt::Long::Configure("bundling");
 GetOptions (
 	'd|derivative|derivatives=s' => \$derivatives,
-	'f|force'   => \$forceQ,
-	'r|reverse' => \$reverseQ
+	'f|force'                    => \$forceQ,
+	'g|groups=s'                 => \$groups,
+	'r|reverse'                  => \$reverseQ
 );
 
-$derivatives = "mei,musicxml" if $derivatives =~ /^\s*$/;
+$groups = "0123456789abcdef" if $groups =~ /^\s*$/;
+$groups = reverse($groups) if $reverseQ;
 
+$derivatives = "mei,musicxml" if $derivatives =~ /^\s*$/;
 $derivatives =~ s/^[^0-9a-zA-Z_-]+//;
 $derivatives =~ s/[^0-9a-zA-Z_-]+$//;
-
-my @dlist = split (/[^0-9a-zA-Z_-]+/, $derivatives);
+my @derivativeList = split (/[^0-9a-zA-Z_-]+/, $derivatives);
 
 my $bindir = `pwd`;
 chomp $bindir;
@@ -40,44 +61,11 @@ $bindir =~ s/\/$//;
 if ($bindir !~ /\/bin$/) {
 	$bindir .= "/bin";
 }
-
 die "ERROR: Cannot find bin directory $bindir\n" if !-d $bindir;
 
-
-if ($reverseQ) {
-	prepareDerivatives("f");
-	prepareDerivatives("e");
-	prepareDerivatives("d");
-	prepareDerivatives("c");
-	prepareDerivatives("b");
-	prepareDerivatives("a");
-	prepareDerivatives("9");
-	prepareDerivatives("8");
-	prepareDerivatives("7");
-	prepareDerivatives("6");
-	prepareDerivatives("5");
-	prepareDerivatives("4");
-	prepareDerivatives("3");
-	prepareDerivatives("2");
-	prepareDerivatives("1");
-	prepareDerivatives("0");
-} else {
-	prepareDerivatives("0");
-	prepareDerivatives("1");
-	prepareDerivatives("2");
-	prepareDerivatives("3");
-	prepareDerivatives("4");
-	prepareDerivatives("5");
-	prepareDerivatives("6");
-	prepareDerivatives("7");
-	prepareDerivatives("8");
-	prepareDerivatives("9");
-	prepareDerivatives("a");
-	prepareDerivatives("b");
-	prepareDerivatives("c");
-	prepareDerivatives("d");
-	prepareDerivatives("e");
-	prepareDerivatives("f");
+my @order = split(//, $groups);
+foreach my $digit (@order) {
+	prepareDerivatives($digit);
 }
 
 exit(0);
@@ -87,7 +75,8 @@ exit(0);
 
 ##############################
 ##
-## prepareDerivatives --
+## prepareDerivatives -- Calculate derivative files for a given
+##    directory and any single-digit subdirectories within it.
 ##
 
 sub prepareDerivatives {
@@ -106,17 +95,17 @@ sub prepareDerivatives {
 		}
 	}
 	if ($reverseQ) {
-		foreach my $md5 (sort { $b <=> $a } @md5dirs) {
+		foreach my $md5 (reverse sort @md5dirs) {
 			prepareDerivativesForEntry($basedir, $md5);
 		}
-		foreach my $dir (sort { $b <=> $a } @subdirs) {
+		foreach my $dir (reverse sort @subdirs) {
 			prepareDerivatives("$basedir/$dir");
 		}
 	} else {
-		foreach my $md5 (sort { $a <=> $b } @md5dirs) {
+		foreach my $md5 (sort @md5dirs) {
 			prepareDerivativesForEntry($basedir, $md5);
 		}
-		foreach my $dir (sort { $a <=> $b } @subdirs) {
+		foreach my $dir (sort @subdirs) {
 			prepareDerivatives("$basedir/$dir");
 		}
 	}
@@ -135,7 +124,7 @@ sub prepareDerivativesForEntry {
 	die "Problem in md5 $md5" if $md5 !~ /^[0-9a-f]{8}$/;
 	die "Cannot locate directory $basedir/$md5\n" if !-d "$basedir/$md5";
 	die "Cannot locate source file $basedir/$md5/$md5.krn\n" if !-r "$basedir/$md5/$md5.krn";
-	foreach my $derivative (@dlist) {
+	foreach my $derivative (@derivativeList) {
 		my $dscript = "$bindir/derivative-$derivative";
 		if (!-r $dscript) {
 			print STDERR "WARNING: Derivative-generating program $dscript does not exist.\n";

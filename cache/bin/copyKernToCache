@@ -2,24 +2,42 @@
 #
 # Programmer:    Craig Stuart Sapp <craig.stanford.edu>
 # Creation Date: Sun Sep 12 08:06:52 PDT 2021
-# Last Modified: Sun Sep 12 08:28:21 PDT 2021
-# Filename:      nifc-humdrum-data/cache/bin/makeIndex
+# Last Modified: Fri 17 Sep 2021 01:10:02 AM PDT
+# Filename:      cache/bin/copyKernToCache
 # Syntax:        perl 5
+# vim:           ts=3
 #
-# Description:   Copy kern files into cache directories for files.
+# Description:   Copy kern files in parent directory
+#                into individual cache directories.
+#
+# Options:
+#     -i index-file  == File that contains a list of the input
+#                       files and MD5 ID mapping for cache directories.
+#     -k kern-dir    == Source directory for Humdrum **kern files
+#                       to store in cache.
 #
 
 use strict;
+use Getopt::Long;
 use File::Path qw(make_path);
 use File::Copy;
 
-my $depth = 1;
-$depth = 1 if $depth < 1;
-$depth = 1 if $depth > 3;
+my $indexfile;
+my $kerndir;
+Getopt::Long::Configure("bundling");
+GetOptions (
+   'i|index=s' => \$indexfile,
+   'k|kerndir=s' => \$kerndir
+);
 
-my $srcdir = "../kern";
+$indexfile = "index.hmd" if $indexfile =~ /^\s*$/;
+$kerndir   = "../kern"   if $kerndir   =~ /^\s*$/;
 
-my $indexfile = "index.hmd";
+# Cache depth (number of subdirectory levels until file directories).
+my $cacheDepth = 1;
+$cacheDepth = 1 if $cacheDepth < 1;
+$cacheDepth = 1 if $cacheDepth > 3;
+
 my %index = getIndex($indexfile);
 
 my @keys = sort keys %index;
@@ -40,14 +58,14 @@ exit(0);
 
 sub copyFileToCache {
 	my ($md5, $fileid) = @_;
-	my $targetdir = getTargetDir($md5, $depth);
+	my $targetdir = getTargetDir($md5, $cacheDepth);
 
 	# File is already in cache:
 	return if -d "$targetdir";
 
 	die "ERROR: Target directory $targetdir is not a directory\n" if -r $targetdir;
 
-	my @srcfiles = glob("$srcdir/$fileid*.krn");
+	my @srcfiles = glob("$kerndir/$fileid*.krn");
 	my $srcfile;
 	if (@srcfiles == 1) {
 		$srcfile = @srcfiles[0];
@@ -87,11 +105,11 @@ sub copyFileToCache {
 ##
 
 sub getTargetDir {
-	my ($md5, $depth) = @_;
-	return $md5 if $depth == 0;
+	my ($md5, $cacheDepth) = @_;
+	return $md5 if $cacheDepth == 0;
 	my @pieces = split(//, $md5);
 	my $output = "";
-	for (my $i=0; $i<$depth; $i++) {
+	for (my $i=0; $i<$cacheDepth; $i++) {
 		$output .= $pieces[$i] . "/";
 	}
 	$output .= $md5;
@@ -122,7 +140,7 @@ sub getIndex {
 			$exinterp = 1;
 			my @fields = split(/\t+/, $line);
 			for (my $j=0; $j<@fields; $j++) {
-				$md5Index = $j if $fields[$j] eq "**md5";
+				$md5Index    = $j if $fields[$j] eq "**md5";
 				$fileidIndex = $j if $fields[$j] eq "**fileid";
 			}
 			next;
@@ -136,7 +154,6 @@ sub getIndex {
 	}
 	return %output;
 }
-
 
 
 

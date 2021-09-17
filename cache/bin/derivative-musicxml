@@ -3,11 +3,14 @@
 # Programmer:    Craig Stuart Sapp <craig.stanford.edu>
 # Creation Date: Mon 13 Sep 2021 11:53:13 AM PDT
 # Last Modified: Mon 13 Sep 2021 11:53:17 AM PDT
-# Filename:      nifc-humdrum-data/cache/bin/derivative-musicxml
+# Filename:      cache/bin/derivative-musicxml
 # Syntax:        perl 5
 # vim:           ts=3
 #
 # Description:   Create MusicXML file from Humdrum file.
+#
+# Options:
+#     -f   == Force recalculation of derivative files (overwrite).
 #
 
 use strict;
@@ -54,6 +57,8 @@ if ($output =~ /^\s*$/) {
 if ((length($output) < 10000) && ($output =~ /Gateway Timeout/)) {
 	die "$md5id: Gateway Timeout.\n";
 }
+
+# Maybe also check if file contains some expected XML elements.
 
 open (FILE, ">$outputfile") or die "ERROR: Cannot write file $outputfile\n";
 print FILE $output;

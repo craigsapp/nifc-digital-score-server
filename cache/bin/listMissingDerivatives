@@ -49,7 +49,7 @@ my %Index = getIndex($indexfile);
 $derivatives = "mei,musicxml" if $derivatives =~ /^\s*$/;
 $derivatives =~ s/^[^0-9a-zA-Z_-]+//;
 $derivatives =~ s/[^0-9a-zA-Z_-]+$//;
-my @dlist = split (/[^0-9a-zA-Z_-]+/, $derivatives);
+my @derivativeList = split (/[^0-9a-zA-Z_-]+/, $derivatives);
 
 my $bindir = `pwd`;
 chomp $bindir;
@@ -123,10 +123,10 @@ sub listMissingDerivativesForEntry {
 	die "Problem in md5 $md5" if $md5 !~ /^[0-9a-f]{8}$/;
 	die "Cannot locate directory $basedir/$md5\n" if !-d "$basedir/$md5";
 	die "Cannot locate source file $basedir/$md5/$md5.krn\n" if !-r "$basedir/$md5/$md5.krn";
-	foreach my $derivative (@dlist) {
+	foreach my $derivative (@derivativeList) {
 		if ($derivative eq "mei") {
 			if (!-r "$basedir/$md5/$md5.mei.gz") {
-				if (@dlist > 1) {
+				if (@derivativeList > 1) {
 					print "$derivative\t";
 				}
 				print "$Index{$md5}";
@@ -142,7 +142,7 @@ sub listMissingDerivativesForEntry {
 			}
 		} elsif ($derivative eq "musicxml") {
 			if (!-r "$basedir/$md5/$md5.musicxml.gz") {
-				if (@dlist > 1) {
+				if (@derivativeList > 1) {
 					print "$derivative\t";
 				}
 				print "$Index{$md5}";
