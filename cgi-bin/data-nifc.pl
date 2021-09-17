@@ -325,6 +325,14 @@ sub getMd5 {
 		return $1;
 	}
 	close FILE;
+	# Did not find ID in list.  Check to see if it is an md5 ID:
+	if ($id =~ /^[0-9a-f]{8}$/) {
+		my $cdir = getCacheSubdir($id, $cacheDepth);
+		my $cachedir   = "$basedir/cache";
+		if (-d "$cachedir/$cdir") {
+			return $id;
+		}
+	}
 	return "";
 }
 
