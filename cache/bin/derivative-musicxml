@@ -5,6 +5,7 @@
 # Last Modified: Mon 13 Sep 2021 11:53:17 AM PDT
 # Filename:      nifc-humdrum-data/cache/bin/derivative-musicxml
 # Syntax:        perl 5
+# vim:           ts=3
 #
 # Description:   Create MusicXML file from Humdrum file.
 #
@@ -44,8 +45,21 @@ chomp $gzip;
 die "ERROR: Cannot locate gzip command\n" if $gzip =~ /^\s*$/;
 
 
-`$humdrum2musicxml $inputfile > $outputfile`;
-print STDERR "Processing $inputfile ...";
+my $output = `$humdrum2musicxml $inputfile`;
+
+if ($output =~ /^\s*$/) {
+	die "$md5id: No data content.\n";
+}
+
+if ((length($output) < 10000) && ($output =~ /Gateway Timeout/)) {
+	die "$md5id: Gateway Timeout.\n";
+}
+
+open (FILE, ">$outputfile") or die "ERROR: Cannot write file $outputfile\n";
+print FILE $output;
+close FILE;
+
+print STDERR "Compressing $inputfile ...";
 `$gzip $outputfile`;
 print STDERR " Done.\n";
 

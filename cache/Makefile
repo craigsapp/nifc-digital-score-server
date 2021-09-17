@@ -128,12 +128,25 @@ generate-mei:
 regenerate-mei:
 	bin/makeDerivatives -f -d mei
 
+missing-mei:
+	@bin/listMissingDerivatives -d mei -mcf
+
+erase-mei:
+	bin/eraseDerivatives -d mei
+
+##############################
+
 generate-musicxml:
 	bin/makeDerivatives -d musicxml
 
 regenerate-musicxml:
 	bin/makeDerivatives -f -d musicxml
 
+missing-musicxml:
+	@bin/listMissingDerivatives -d musicxml -mcf
+
+erase-musicxml:
+	bin/eraseDerivatives -d musicxml
 
 
 

@@ -1,4 +1,5 @@
 .DS_Store
+nohup.out
 *.zip
 *.tar.bz2
 *.tbz2

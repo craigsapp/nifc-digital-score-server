@@ -1,0 +1,122 @@
+#!/usr/bin/perl
+#
+# Programmer:    Craig Stuart Sapp <craig.stanford.edu>
+# Creation Date: Wed 15 Sep 2021 04:51:33 PM PDT
+# Last Modified: Wed 15 Sep 2021 04:51:35 PM PDT
+# Filename:      nifc-humdrum-data/cache/bin/eraseDerivatives
+# Syntax:        perl 5
+# vim:           ts=3
+#
+# Description:   Erase derivative files of particular type from cache.
+#
+# Derivatives that can be erased:
+#    mei      == MEI files
+#    musicxml == MusicXML files
+#
+
+use strict;
+use Getopt::Long;
+
+my $derivatives;
+my $forceQ = 0;
+Getopt::Long::Configure("bundling");
+GetOptions (
+   'd|derivative|derivatives=s' => \$derivatives,
+   'f|force' => \$forceQ
+);
+
+die "Usage: $0 -d derivative\n" if $derivatives =~ /^\s*$/;
+# $derivatives = "mei,musicxml" if $derivatives =~ /^\s*$/;
+
+$derivatives =~ s/^[^0-9a-zA-Z_-]+//;
+$derivatives =~ s/[^0-9a-zA-Z_-]+$//;
+
+my @dlist = split (/[^0-9a-zA-Z_-]+/, $derivatives);
+
+my $bindir = `pwd`;
+chomp $bindir;
+$bindir =~ s/\/$//;
+if ($bindir !~ /\/bin$/) {
+	$bindir .= "/bin";
+}
+
+die "ERROR: Cannot find bin directory $bindir\n" if !-d $bindir;
+
+eraseDerivatives("0");
+eraseDerivatives("1");
+eraseDerivatives("2");
+eraseDerivatives("3");
+eraseDerivatives("4");
+eraseDerivatives("5");
+eraseDerivatives("6");
+eraseDerivatives("7");
+eraseDerivatives("8");
+eraseDerivatives("9");
+eraseDerivatives("a");
+eraseDerivatives("b");
+eraseDerivatives("c");
+eraseDerivatives("d");
+eraseDerivatives("e");
+eraseDerivatives("f");
+
+exit(0);
+
+
+###########################################################################
+
+##############################
+##
+## eraseDerivatives --
+##
+
+sub eraseDerivatives {
+	my ($basedir) = @_;
+	return if !-d $basedir;
+	my @subdirs;
+	my @md5dirs;
+	opendir(DIR, $basedir) or die "Cannot read $basedir\n";
+	while (my $file = readdir(DIR)) {
+		next if $file =~ /^\./;
+		next if !-d "$basedir/$file";
+		if ($file =~ /^[0-9a-f]$/) {
+			$subdirs[@subdirs] = $file;
+		} elsif ($file =~ /^[0-9a-f]{8}$/) {
+			$md5dirs[@md5dirs] = $file;
+		}
+	}
+	foreach my $md5 (sort @md5dirs) {
+		eraseDerivativesForEntry($basedir, $md5);
+	}
+	foreach my $dir (sort @subdirs) {
+		eraseDerivatives("$basedir/$dir");
+	}
+}
+
+
+
+##############################
+##
+## eraseDerivativesForEntry --
+##
+
+sub eraseDerivativesForEntry {
+	my ($basedir, $md5) = @_;
+	die "Problem in basedir $basedir" if $basedir !~ /^[a-zA-Z0-9_\/-]+$/;
+	die "Problem in md5 $md5" if $md5 !~ /^[0-9a-f]{8}$/;
+	die "Cannot locate directory $basedir/$md5\n" if !-d "$basedir/$md5";
+	die "Cannot locate source file $basedir/$md5/$md5.krn\n" if !-r "$basedir/$md5/$md5.krn";
+	foreach my $derivative (@dlist) {
+		my $command;
+		if ($derivative eq "mei") {
+			$command = "(cd $basedir/$md5 && rm -f $md5.mei.gz)";
+		} elsif ($derivative eq "musicxml") {
+			$command = "(cd $basedir/$md5 && rm -f $md5.musicxml.gz)";
+		}
+		if ($command !~ /^\s*$/) {
+			`$command`;
+		}
+	}
+}
+
+
+
