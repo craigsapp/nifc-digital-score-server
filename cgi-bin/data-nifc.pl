@@ -2,12 +2,23 @@
 #
 # Programmer:    Craig Stuart Sapp <craig.stanford.edu>
 # Creation Date: Sun 12 Sep 2021 07:37:36 PM PDT
-# Last Modified: Tue 14 Sep 2021 07:10:38 AM PDT
+# Last Modified: Sat 18 Sep 2021 01:36:23 PM PDT
 # Filename:      data-nifc/cgi-bin/data-nifc.pl
 # Syntax:        perl 5
 # vim:           ts=3
 #
 # Description:   Data server for https://humdrum.nifc.pl
+#
+# Formats thatnthe server can deal with:
+# 
+#    Static formats:
+#       krn       == Humdrum data file (also "kern", "hmd", and "humdrum" are alias formats).
+#       mei       == Conversion to MEI data
+#       musicxml  == Conversion to MusicXML data
+#    Dynamically generated formats:
+#       lyrics    == Extract lyrics HTML page
+#       info-aton == Basic metadata about the file in ATON format.
+#       info-json == Basic metadata about the file in JSON format.
 #
 
 use strict;
@@ -28,6 +39,20 @@ my $cacheIndex = "$cachedir/index.hmd";
 
 # cacheDepth == The number of subdirectories before reaching individual cache directory.
 my $cacheDepth = 1;
+
+
+# Dynamic data generation programs
+#
+# For SELinux, run these commands on the scripts to allow this CGI script to run them:
+#    chcon system_u:object_r:httpd_exec_t:s0 lyrics
+#    chcon system_u:object_r:httpd_exec_t:s0 getInfo
+# And one time, give permission for this CGI script to run command in OS:
+#    setsebool -P httpd_execmem 1
+# Use the -Z option on ls to see the SELinux permissions:
+#    ls -Z lyrics
+#
+my $lyrics	= "$basedir/bin/lyrics";    # for "lyrics" format
+my $getInfo	= "$basedir/bin/getInfo";   # for basic medatadata about a file.
 
 ##
 ##############################
@@ -66,42 +91,7 @@ exit(0);
 
 ##############################
 ##
-## splitFormatFromId -- id.format gets divided into separate parameters.
-##
-
-sub splitFormatFromId {
-	my $id = $OPTIONS{"id"};
-	my $format = $OPTIONS{"format"};
-
-	my $newformat = "";
-	if ($id =~ /^([^\/]+)\/([^\/]+)$/) {
-		$id = $1;
-		$newformat = $2;
-	} elsif ($id =~ s/\.([0-9a-zA-Z_-]+)$//) {
-		$newformat = $1;
-	}
-
-	if ($newformat !~ /^\s*$/) {
-		if ($format =~ /^\s*$/) {
-			$format = $newformat;
-		}
-	}
-	if ($format =~ /^\s*$/) {
-		$format = "krn";
-	}
-
-	$format = cleanFormat($format);
-	$id     = cleanId($id);
-
-	$OPTIONS{"id"} = $id;
-	$OPTIONS{"format"} = $format;
-}
-
-
-
-##############################
-##
-## processParameters -- Such as:
+## processParameters -- URLs such as:
 ##     https://humdrum.nifc.pl/004-1a-COC-003.krn for kern file
 ##     https://humdrum.nifc.pl/004-1a-COC-003.mei for MEI file
 ##     https://humdrum.nifc.pl/16xx:1210.krn for kern file
@@ -128,10 +118,11 @@ sub processParameters {
 	} 
 
 	# dynamic formats
-	if ($format eq "lyrics") {
+	elsif ($format eq "lyrics") {
+		sendDataContent($md5, $format);
+	} elsif ($format =~ /^info-(aton|json)/) {
 		sendDataContent($md5, $format);
 	}
-
 
 	errorMessage("Unknown data format: $format");
 }
@@ -140,7 +131,7 @@ sub processParameters {
 
 ##############################
 ##
-## sendDataContent --
+## sendDataContent -- Manages and checks format types for static and dynamic data formats.
 ##
 
 sub sendDataContent {
@@ -157,18 +148,24 @@ sub sendDataContent {
 	}
 
 	# Dynamically generated data formats:
-	if ($format eq "lyrics") {
+	elsif ($format eq "lyrics") {
 		sendLyricsContent($md5);
+	} elsif ($format =~ /info-(aton|json)/) {
+		sendInfoContent($md5, $format);
 	}
 
 	errorMessage("Unknown data format B: $format");
 }
 
 
+###########################################################################
+##
+## Static content delivery functions:
+##
 
 ##############################
 ##
-## sendHumdrumContent --
+## sendHumdrumContent -- (Static content) Send Humdrum file for ID.
 ##
 
 sub sendHumdrumContent {
@@ -193,7 +190,7 @@ sub sendHumdrumContent {
 
 ##############################
 ##
-## sendMeiContent --
+## sendMeiContent -- (Static content) Send MEI conversion of Humdrum data.
 ##
 
 sub sendMeiContent {
@@ -229,7 +226,7 @@ sub sendMeiContent {
 
 ##############################
 ##
-## sendMusicxmlContent --
+## sendMusicxmlContent -- (Static content) Send MusicXML conversion of Humdrum data.
 ##
 
 sub sendMusicxmlContent {
@@ -262,22 +259,95 @@ sub sendMusicxmlContent {
 }
 
 
+##
+## End of static content delivery functions.
+##
+###########################################################################
+##
+## Dynamic content delivery functions:
+##
+
 
 ##############################
 ##
-## sendLyricsContent --
+## sendLyricsContent -- (Dynamic content) Extract lyrics from score and serve as HTML file.
+##   Later change to HTML content without wrapping in full HTML file.
 ##
 
 sub sendLyricsContent {
 	my ($md5) = @_;
 	my $cdir = getCacheSubdir($md5, $cacheDepth);
-	my $command = "$cachedir/bin/lyrics -hbv \"$cachedir/$cdir/$md5.krn\"";
+	my $command = "$lyrics -hbv \"$cachedir/$cdir/$md5.krn\"";
 	my $data = `$command`;
 	print "Content-Type: text/html; charset=utf-8\n";
 	print "Content-Disposition: inline; filename=\"$OPTIONS{'id'}-lyrics.html\"\n";
 	print "\n";
 	print $data;
 	exit(0);
+}
+
+
+
+##############################
+##
+## sendInfoContent -- (Dynamic content) Send basic metadata about a file.
+##
+
+sub sendInfoContent {
+	my ($md5, $format) = @_;
+	my $command = "$getInfo";
+	$command .= " -j" if $format =~ /json/i;
+	$command .= " $md5";
+	my $data = `(cd $cachedir && $command)`;
+	my $mime = "text/aton";
+	$mime = "application/json" if $format =~ /json/i;
+	my $ext = "aton";
+	$ext = "json" if $format =~ /json/i;
+	print "Content-Type: $mime; charset=utf-8\n";
+	print "Content-Disposition: inline; filename=\"$OPTIONS{'id'}-info.$ext\"\n";
+	print "\n";
+	print $data;
+	exit(0);
+}
+
+
+##
+## End of dynamic content delivery functions.
+##
+###########################################################################
+
+
+##############################
+##
+## splitFormatFromId -- id.format gets divided into separate parameters.
+##
+
+sub splitFormatFromId {
+	my $id = $OPTIONS{"id"};
+	my $format = $OPTIONS{"format"};
+
+	my $newformat = "";
+	if ($id =~ /^([^\/]+)\/([^\/]+)$/) {
+		$id = $1;
+		$newformat = $2;
+	} elsif ($id =~ s/\.([0-9a-zA-Z_-]+)$//) {
+		$newformat = $1;
+	}
+
+	if ($newformat !~ /^\s*$/) {
+		if ($format =~ /^\s*$/) {
+			$format = $newformat;
+		}
+	}
+	if ($format =~ /^\s*$/) {
+		$format = "krn";
+	}
+
+	$format = cleanFormat($format);
+	$id     = cleanId($id);
+
+	$OPTIONS{"id"} = $id;
+	$OPTIONS{"format"} = $format;
 }
 
 
