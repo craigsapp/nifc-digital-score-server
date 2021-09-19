@@ -1,7 +1,7 @@
 ##
 ## Programmer:    Craig Stuart Sapp <craig@ccrma.stanford.edu>
 ## Creation Date: Sun Sep 12 06:50:13 PDT 2021
-## Last Modified: Fri 17 Sep 2021 07:43:29 AM PDT
+## Last Modified: Sat 18 Sep 2021 06:44:11 PM PDT
 ## Syntax:        GNU Makefile
 ## Filename:      cache/Makefile
 ## vim:           ts=3
@@ -84,7 +84,7 @@ recopy-kern:
 ##
 
 derivative: derivatives
-derivatives:
+derivatives: regenerate-spreadsheet-new
 	bin/makeDerivatives
 
 
@@ -176,6 +176,23 @@ missing-musicxml:
 
 erase-musicxml:
 	bin/eraseDerivatives -d musicxml
+
+##############################
+
+generate-spreadsheet-new: regenerate-spreadsheet-new
+
+generate-spreadsheet: regenerate-spreadsheet
+
+#regenerate-spreadsheet: erase-spreadsheet
+regenerate-spreadsheet:
+	bin/makeSpreadsheetInfo
+
+#regenerate-spreadsheet-new: erase-spreadsheet
+regenerate-spreadsheet-new:
+	bin/makeSpreadsheetInfo -i index-new.hmd
+
+erase-spreadsheet:
+	rm ?/*/*-spreadsheet.aton
 
 
 

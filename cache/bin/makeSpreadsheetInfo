@@ -1,0 +1,199 @@
+#!/usr/bin/perl
+#
+# Programmer:    Craig Stuart Sapp <craig.stanford.edu>
+# Creation Date: Sat 18 Sep 2021 02:36:31 PM PDT
+# Last Modified: Sat 18 Sep 2021 02:36:34 PM PDT
+# Filename:      cache/bin/makeSpreadsheetInfo
+# Syntax:        perl 5
+# vim:           ts=3
+#
+# Description:   Download digital score metadata from Google Spreadsheet and store in cache.
+#
+# Options:
+#     -i index-file  == File that contains a list of the input
+#                       files and MD5 ID mapping for cache directories.
+#
+
+use strict;
+use Getopt::Long;
+
+# Cache depth (number of subdirectory levels until file directories).
+my $cacheDepth = 1;
+
+my $wget = `which wget`;
+chomp $wget;
+die "Cannot find wget program\n" if $wget =~ /^\s*$/;
+
+my $macroid = "AKfycbyMP0n9of0-T6JilAggBNl3_Dd-_8W1TTsNPhO73SiE6h2Gv0xejtclRY8Jnf2G9O5HZA";
+my $indexfile;
+Getopt::Long::Configure("bundling");
+GetOptions (
+   'i|index=s' => \$indexfile,
+   'm|macroid=s' => \$macroid
+);
+
+my $sheeturl = "https://script.google.com/macros/s/$macroid/exec?format=aton&lang=en";
+my %entriesByCentid = getEntriesByCentid($sheeturl);
+
+$indexfile = "index.hmd" if $indexfile =~ /^\s*$/;
+my %index = getCentToMd5Index($indexfile);
+
+foreach my $centid (sort keys %index) {
+	createSpreadsheetFile($centid, $index{$centid});
+}
+
+exit(0);
+
+###########################################################################
+
+
+##############################
+##
+## createSpreadsheetFile --
+##
+
+sub createSpreadsheetFile {
+	my ($centid, $md5) = @_;
+	my $targetdir = getTargetDir($md5, $cacheDepth);
+
+	die" Cannot find directory $targetdir\n" if !-d $targetdir;
+	my $entry = $entriesByCentid{$centid};
+	return if $entry =~ /^\s*$/;
+
+	print "Creating $targetdir/$md5-spreadsheet.aton\n";
+	open(FILE, ">$targetdir/$md5-spreadsheet.aton") or die "Cannot write spreadsheet info\n";
+	print FILE $entry;
+	close FILE;
+}
+
+
+
+##############################
+##
+## getEntriesByCentid --
+##
+## @@BEGIN: ENTRY
+## @Sequence_number:	1753
+## @Author:		Anonim
+## @Title:			O gloriosa virginum
+## @Subtitle:
+## @Publication_date:
+## @RISM_siglum:		PL-SA
+## @Shelfmark:		92/A II 32
+## @Work_number:
+## @Subwork_number:
+## @Grouping:		W
+## @RISM_ID:		1001030094
+## @Scan:			YES
+## @XML:			NO
+## @KERN:			NO
+## @Diplomatic_kern:	NO
+## @Corrected_kern:	NO
+## @Edition_kern:		NO
+## @URL_resource:		http://bc.bdsandomierz.pl/dlibra/publication/1369/edition/1337/content
+## @Warnings:
+## @Filename:
+## @sheet:			1700
+## @centid:		17xx:1753
+## @lang:			en
+## @@END: ENTRY
+##
+
+sub getEntriesByCentid {
+	my ($dataurl) = @_;
+	my $command = "$wget \"$dataurl\" -O -";
+	my @contents = `$command`;
+	my %output;
+	my $entry;
+	my $centid;
+	for (my $i=0; $i<@contents; $i++) {
+		my $line = $contents[$i];
+		chomp $line;
+		if ($line =~ /^\@\@BEGIN\s*:\s*ENTRY\s*$/) {
+			$entry = "";
+			$centid = "";
+			next;
+		}
+		if ($line =~ /^\@\@END\s*:\s*ENTRY\s*$/) {
+			if ($centid !~ /^\s*$/) {
+				$output{$centid} = $entry;
+			}
+			$centid = "";
+			$entry = "";
+			next;
+		}
+		next if $line =~ /^\@sheet\s*:/;
+		next if $line =~ /^\@lang\s*:/;
+		$entry .= "$line\n";
+		if ($line =~ /^\@cent?id\s*:\s*(.*)\s*$/i) {
+			$centid = $1;
+		}
+	}
+	return %output;
+}
+
+
+
+##############################
+##
+## getCentToMd5Index --
+##
+
+sub getCentToMd5Index {
+	my ($indexfile) = @_;
+	open(FILE, $indexfile) or die "Cannot read $indexfile\n";
+	my @contents = <FILE>;
+	chomp @contents;
+	close FILE;
+	my $md5Index    = -1;
+	my $centidIndex = -1;
+	my $exinterp = 0;
+	my %output;
+	for (my $i=0; $i<@contents; $i++) {
+		my $line = $contents[$i];
+		chomp $line;
+		next if $line =~ /^!/;
+		if ($line =~ /^\*\*/) {
+			$exinterp = 1;
+			my @fields = split(/\t+/, $line);
+			for (my $j=0; $j<@fields; $j++) {
+				$md5Index    = $j if $fields[$j] eq "**md5";
+				$centidIndex = $j if $fields[$j] eq "**cenid";
+			}
+			next;
+		}
+		next if $line =~ /^\*/;
+		next if !$exinterp;
+		die "Cannot find MD5 column in index file\n" if $md5Index < 0;
+		die "Cannot find Century ID column in index file\n" if $centidIndex < 0;
+		my @fields = split(/\t+/, $line);
+		my $centid = $fields[$centidIndex];
+		next if $centid =~ /^\s*$/;
+		next if $centid eq ".";
+		my $md5 = $fields[$md5Index];
+		$output{$centid} = $md5;
+	}
+	return %output;
+}
+
+
+
+##############################
+##
+## getTargetDir --
+##
+
+sub getTargetDir {
+	my ($md5, $cacheDepth) = @_;
+	return $md5 if $cacheDepth == 0;
+	my @pieces = split(//, $md5);
+	my $output = "";
+	for (my $i=0; $i<$cacheDepth; $i++) {
+		$output .= $pieces[$i] . "/";
+	}
+	$output .= $md5;
+	return $output;
+}
+
+
+

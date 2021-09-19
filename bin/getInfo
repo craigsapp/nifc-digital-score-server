@@ -102,6 +102,9 @@ sub convertToJson {
 		if (length $key < 5) {
 			$output .= "\t";
 		}
+		if (length $key < 14) {
+			$output .= "\t";
+		}
 		my $value = $params{$key};
 		if ($value =~ /^\d+$/) {
 			# integer
@@ -141,13 +144,14 @@ sub generateInfo {
 	} elsif ($IndexFileidReverse{$id} !~ /^\s*$/) {
 		$md5 = $IndexFileidReverse{$id};
 	}
-	my $centid = $IndexCentid{$md5};
+	my $cenid = $IndexCentid{$md5};
 	my $fileid = $IndexFileid{$md5};
 
 	my $output = "";
-	$output .= "\@md5id:\t\t$md5\n" if $md5 !~ /^\s*$/;
-	$output .= "\@fileid:\t$fileid\n" if $fileid !~ /^\s*$/;
-	$output .= "\@centid:\t$centid\n" if $centid !~ /^\s*$/;
+	$output .= "\@md5id:\t\t\t$md5\n" if $md5 !~ /^\s*$/;
+	$output .= "\@fileid:\t\t$fileid\n" if $fileid !~ /^\s*$/;
+	# cenid is provided in spreadsheet data:
+	# $output .= "\@cenid:\t$cenid\n" if $cenid !~ /^\s*$/;
 
 	my $dir = getSourceDir($md5, $depth);
 	my $mei      = 0;
@@ -159,8 +163,8 @@ sub generateInfo {
 		$musicxml = 1 if $file =~ /\.musicxml/;
 	}
 
-	$output .= "\@mei:\t\t$mei\n";
-	$output .= "\@musicxml\t$musicxml\n";
+	$output .= "\@mei:\t\t\t$mei\n";
+	$output .= "\@musicxml:\t\t$musicxml\n";
 
 	my $kernfile = "$dir/$md5.krn";
 	my $lyrics   = 0;
@@ -184,11 +188,28 @@ sub generateInfo {
 		}
 	}
 
-	$output .= "\@lyrics:\t$lyrics\n";
-	$output .= "\@filename:\t$filename\n";
+	$output .= "\@lyrics:\t\t$lyrics\n";
+	$output .= "\@filename:\t\t$filename\n";
 
 	if ($filename !~ /^\s*$/) {
-		$output .= "\@github:";
+		$output .= "\@repository:";
+		if ($filename =~ /(^pl-[^-]+)--/) {
+				# POPC-2
+				my $siglum = $1;
+				$output .= "\t\thttps://github.com/pl-wnifc/humdrum-polish-scores";
+		} elsif ($filename =~ /^\d/) {
+				# POPC-1
+			 	$output .= "\t\thttps://github.com/pl-wnifc/humdrum-chopin-first-editions";
+		} else {
+				# Strange problem with filename.
+		}
+		$output .= "\n";
+	} else {
+		$output .="\@repository\n";
+	}
+
+	if ($filename !~ /^\s*$/) {
+		$output .= "\@repository-file:";
 		if ($filename =~ /(^pl-[^-]+)--/) {
 				# POPC-2
 				my $siglum = $1;
@@ -201,11 +222,11 @@ sub generateInfo {
 		}
 		$output .= "\n";
 	} else {
-		$output .="\@github:\n";
+		$output .="\@repository-file\n";
 	}
 
 	if ($filename !~ /^\s*$/) {
-		$output .= "\@github-raw:";
+		$output .= "\@repository-raw:";
 		if ($filename =~ /(^pl-[^-]+)--/) {
 				# POPC-2
 				my $siglum = $1;
@@ -218,9 +239,42 @@ sub generateInfo {
 		}
 		$output .= "\n";
 	} else {
-		$output .="\@github-raw:\n";
+		$output .="\@repository-raw:\n";
 	}
 
+	my $targetdir = getTargetDir($md5, $depth);
+	my $sfile = "$targetdir/$md5-spreadsheet.aton";
+	if (-r $sfile) {
+		if (open(FILE, $sfile)) {
+			my @contents = <FILE>;
+			close FILE;
+			foreach my $line (@contents) {
+				chomp $line;
+				next if $line =~ /^\s*$/;
+				$output .= "$line\n";
+			}
+		}
+	}
+
+	return $output;
+}
+
+
+
+##############################
+##
+## getTargetDir --
+##
+
+sub getTargetDir {
+	my ($md5, $cacheDepth) = @_;
+	return $md5 if $cacheDepth == 0;
+	my @pieces = split(//, $md5);
+	my $output = "";
+	for (my $i=0; $i<$cacheDepth; $i++) {
+		$output .= $pieces[$i] . "/";
+	}
+	$output .= $md5;
 	return $output;
 }
 
@@ -284,9 +338,9 @@ sub getIndexes {
 		die "ERRORB: required md5 id is missing" if $md5 eq ".";
 		$IndexMd5{$md5} = $md5;
 		if ($centuryIndex >= 0) {
-			my $centid = $fields[$centuryIndex];
-			$IndexCentid{$md5} = $centid;
-			$IndexCentidReverse{$centid} = $md5;
+			my $cenid = $fields[$centuryIndex];
+			$IndexCentid{$md5} = $cenid;
+			$IndexCentidReverse{$cenid} = $md5;
 		}
 		if ($fileidIndex >= 0) {
 			my $fileid = $fields[$fileidIndex];
