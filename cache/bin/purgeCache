@@ -3,7 +3,7 @@
 # Programmer:    Craig Stuart Sapp <craig.stanford.edu>
 # Creation Date: Sun Sep 12 10:43:54 PDT 2021
 # Last Modified: Fri 17 Sep 2021 07:03:07 AM PDT
-# Filename:      nifc-humdrum-data/cache/bin/purgeCache
+# Filename:      cache/bin/purgeCache
 # Syntax:        perl 5
 # vim:           ts=3
 #

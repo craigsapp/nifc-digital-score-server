@@ -133,6 +133,24 @@ erase-cache:
 
 ##############################
 ##
+## Indexes:
+##
+
+indexes: popc2-browse-index
+
+popc2-browse-index:
+	@mkdir -p indexes
+	-rm -f indexes/popc2-browse-index.aton.gz
+	-rm -f indexes/popc2-browse-index.json.gz
+	bin/makePopc2Index > indexes/popc2-browse-index.aton
+	(cd indexes; aton2json popc2-browse-index.aton | sed 's/^{"ENTRY"://; s/}[]]}$$/}]/' > popc2-browse-index.json)
+	(cd indexes; gzip popc2-browse-index.json)
+	(cd indexes; gzip popc2-browse-index.aton)
+
+
+
+##############################
+##
 ## Derivatives:
 ##
 

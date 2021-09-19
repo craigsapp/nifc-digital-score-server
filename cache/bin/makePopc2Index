@@ -1,0 +1,160 @@
+#!/usr/bin/perl
+#
+# Programmer:    Craig Stuart Sapp <craig.stanford.edu>
+# Creation Date: Sun 19 Sep 2021 05:40:13 AM PDT
+# Last Modified: Sun 19 Sep 2021 05:40:15 AM PDT
+# Filename:      cache/bin/makePopc2BrowseIndex
+# Syntax:        perl 5
+# vim:           ts=3
+#
+# Description:   Reads index.hmd to generate a list of browse search fields.
+#
+
+use strict;
+
+use strict;
+use Getopt::Long;
+
+my $indexfile;
+my $kerndir;
+Getopt::Long::Configure("bundling");
+GetOptions (
+   'i|index=s' => \$indexfile
+);
+
+$indexfile = "index.hmd" if $indexfile =~ /^\s*$/;
+
+# Cache depth (number of subdirectory levels until file directories).
+my $cacheDepth = 1;
+
+my %index = getIndexCentId($indexfile);
+
+my @keys = sort keys %index;
+
+my $output = "";
+foreach my $key (@keys) {
+	print STDERR "Processing $key ...\n";
+	$output .= prepareEntry($key, $index{$key});
+}
+print $output;
+
+exit(0);
+
+###########################################################################
+
+
+##############################
+##
+## prepareEntry --
+##
+
+sub prepareEntry {
+	my ($cenid, $md5) = @_;
+	my $sourcedir = getSourceDir($md5, $cacheDepth);
+	my $kernfile = "$sourcedir/$md5.krn";
+	die "Cannot find $sourcedir/$md5.krn\n" if !-r $kernfile;
+	my %references = getBibliographicReferences($kernfile);
+	my $composer = $references{"COM"};
+	$composer = $references{"COM1"} if $composer =~ /^\s*$/;
+	$composer = $references{"COA"} if $composer =~ /^\s*$/;
+	$composer = $references{"COA1"} if $composer =~ /^\s*$/;
+	$composer = $references{"COS"} if $composer =~ /^\s*$/;
+	$composer = $references{"COS1"} if $composer =~ /^\s*$/;
+	die "No composer field in file $kernfile\n" if $composer =~ /^\s*$/;
+
+	my $output = "";
+	$output .= "\@\@BEGIN:\tENTRY\n";
+	$output .= "\@CENID:\t\t$cenid\n";
+	$output .= "\@COM:\t\t$composer\n";
+	$output .= "\@\@END:\t\tENTRY\n";
+	$output .= "\n";
+
+	return $output;
+}
+
+
+
+##############################
+##
+## getBibliographicReferences --
+##
+
+sub getBibliographicReferences {
+	my ($kernfile) = @_;
+	open(FILE, $kernfile) or die "Cannot read $kernfile\n";
+	my @contents = <FILE>;
+	close FILE;
+	my %output;
+	for (my $i=0; $i<@contents; $i++) {
+		my $line = $contents[$i];
+		next if $line !~ /^!!!([^:]+)\s*:\s*(.*)\s*$/;
+		my $key = $1;
+		my $value = $2;
+		$output{$key} = $value;
+	}
+	return %output;
+}
+
+
+
+##############################
+##
+## getSourceDir --
+##
+
+sub getSourceDir {
+	my ($md5, $cacheDepth) = @_;
+	return $md5 if $cacheDepth == 0;
+	my @pieces = split(//, $md5);
+	my $output = "";
+	for (my $i=0; $i<$cacheDepth; $i++) {
+		$output .= $pieces[$i] . "/";
+	}
+	$output .= $md5;
+	return $output;
+}
+
+
+
+##############################
+##
+## getIndexCentId -- Mapping from CentId to MD5 ID.
+##
+
+sub getIndexCentId {
+	my ($indexfile) = @_;
+	open(FILE, $indexfile) or die "Cannot read $indexfile\n";
+	my @contents = <FILE>;
+	chomp @contents;
+	close FILE;
+	my $md5Index   = -1;
+	my $cenidIndex = -1;
+	my $exinterp   = 0;
+	my %output;
+	for (my $i=0; $i<@contents; $i++) {
+		my $line = $contents[$i];
+		next if $line =~ /^!/;
+		if ($line =~ /^\*\*/) {
+			$exinterp = 1;
+			my @fields = split(/\t+/, $line);
+			for (my $j=0; $j<@fields; $j++) {
+				$md5Index    = $j if $fields[$j] eq "**md5";
+				$cenidIndex  = $j if $fields[$j] eq "**cenid";
+			}
+			next;
+		}
+		next if $line =~ /^\*/;
+		next if !$exinterp;
+		die "Cannot find MD5 column in index file\n" if $md5Index < 0;
+		die "Cannot find FileId column in index file\n" if $cenidIndex < 0;
+		my @fields = split(/\t+/, $line);
+		my $cenid = $fields[$cenidIndex];
+		next if $cenid eq ".";
+		my $md5 = $fields[$md5Index];
+		$output{$cenid} = $md5;
+	}
+	return %output;
+}
+
+
+

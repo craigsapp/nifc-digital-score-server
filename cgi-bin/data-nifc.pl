@@ -2,23 +2,29 @@
 #
 # Programmer:    Craig Stuart Sapp <craig.stanford.edu>
 # Creation Date: Sun 12 Sep 2021 07:37:36 PM PDT
-# Last Modified: Sat 18 Sep 2021 07:15:01 PM PDT
+# Last Modified: Sun 19 Sep 2021 07:49:24 AM PDT
 # Filename:      data-nifc/cgi-bin/data-nifc.pl
 # Syntax:        perl 5
 # vim:           ts=3
 #
 # Description:   Data server for https://humdrum.nifc.pl
 #
-# Formats thatnthe server can deal with:
-# 
-#    Static formats:
-#       krn       == Humdrum data file (also "kern", "hmd", and "humdrum" are alias formats).
-#       mei       == Conversion to MEI data
-#       musicxml  == Conversion to MusicXML data
+# Formats that the server can deal with:
+#    Indexing resources:
+#       popc2-browse-index.json  == POPC-2 browse search index in JSON format.
+#       popc2-browse-index.aton  == POPC-2 browse search index in ATON format.
+#    Quasi-score ids:
+#       random    ==  Get random score from cache.
+#    Static cached formats:
+#       krn       == Humdrum data file.
+#       mei       == Conversion to MEI data.
+#       musicxml  == Conversion to MusicXML data.
 #    Dynamically generated formats:
 #       lyrics    == Extract lyrics HTML page
 #       info-aton == Basic metadata about the file in ATON format.
 #       info-json == Basic metadata about the file in JSON format.
+#    Debug items:
+#       test     == Print environmental variables.
 #
 
 use strict;
@@ -72,7 +78,9 @@ splitFormatFromId();
 
 
 # Return requested data:
-if ($OPTIONS{"id"} eq "test") {
+if ($OPTIONS{"id"} =~ /index/i) {
+	sendIndex($OPTIONS{"id"}, $OPTIONS{"format"});
+} elsif ($OPTIONS{"id"} eq "test") {
 	# id == test :: print ENV and input parameters for debugging and development.
 	sendTestPage($OPTIONS{"id"}, $OPTIONS{"format"});
 } elsif ($OPTIONS{"id"} eq "random") {
@@ -119,7 +127,7 @@ sub processParameters {
 		sendDataContent($format, @md5s);
 	} elsif ($format eq "musicxml") {
 		sendDataContent($format, @md5s);
-	} 
+	}
 
 	# dynamic formats
 	elsif ($format eq "lyrics") {
@@ -161,6 +169,34 @@ sub sendDataContent {
 
 	errorMessage("Unknown data format B: $format");
 }
+
+
+
+##############################
+##
+## sendIndex -- Index content delivery function.
+##
+
+sub sendIndex {
+	my ($base, $format) = @_;
+	$base =~ s/[^a-zA-Z0-9_-]//g;
+	$format =~ s/[^a-zA-Z0-9_-]//g;
+	my $file = "$cachedir/indexes/$base.$format.gz";
+	if (!-r $file) {
+		errorMessage("Cannot find index: $base.$format");
+	}
+	my $charset = ";charset=UTF-8";
+	my $mime = "text/plain";
+	$mime = "text/x-aton" if $format eq "aton";
+	$mime = "application/json" if $format eq "json";
+	my $data = `cat "$file"`;
+	print "Content-Type: $mime$charset\n";
+	print "Content-Encoding: gzip\n";
+	print "\n";
+	print $data;
+	exit(0);
+}
+
 
 
 ###########################################################################

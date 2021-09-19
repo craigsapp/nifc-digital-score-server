@@ -3,7 +3,7 @@
 # Programmer:    Craig Stuart Sapp <craig.stanford.edu>
 # Creation Date: Sun Sep 12 06:28:28 PDT 2021
 # Last Modified: Sun Sep 12 06:28:31 PDT 2021
-# Filename:      nifc-humdrum-data/cache/bin/makeIndex
+# Filename:      cache/bin/makeIndex
 # Syntax:        perl 5
 #
 # Description:   Reads the files in ../kern directory to create an index of MD5
