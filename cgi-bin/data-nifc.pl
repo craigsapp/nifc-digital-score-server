@@ -2,7 +2,7 @@
 #
 # Programmer:    Craig Stuart Sapp <craig.stanford.edu>
 # Creation Date: Sun 12 Sep 2021 07:37:36 PM PDT
-# Last Modified: Sat 18 Sep 2021 01:36:23 PM PDT
+# Last Modified: Sat 18 Sep 2021 07:15:01 PM PDT
 # Filename:      data-nifc/cgi-bin/data-nifc.pl
 # Syntax:        perl 5
 # vim:           ts=3
@@ -103,25 +103,29 @@ sub processParameters {
 
 	errorMessage("ID is empty.") if $id =~ /^\s*$/;
 	errorMessage("Strange invalid ID \"$id\".") if $id =~ /^[._-]+$/;
-	errorMessage("ID \"$id\" contains invalid characters.") if $id =~ /[^a-zA-Z0-9:_-]/;
+	errorMessage("ID \"$id\" contains invalid characters.") if $id =~ /[^a-zA-Z0-9,:_-]/;
 
-	my $md5 = getMd5($id, $cacheIndex);
-	errorMessage("Entry for $id was not found.") if $md5 =~ /^[.\s]*$/;
+	$id =~ s/^[^0-9a-zA-Z:_-]+//;
+	$id =~ s/[^0-9a-zA-Z:_-]+$//;
+	my @ids = split(/[^0-9a-zA-Z:_-]+/, $id);
+
+	my @md5s = getMd5s($cacheIndex, @ids);
+	errorMessage("Entry for $id was not found.") if @md5s < 1;
 
 	# cached formats
 	if ($format eq "krn") {
-		sendDataContent($md5, $format);
+		sendDataContent($format, @md5s);
 	} elsif ($format eq "mei") {
-		sendDataContent($md5, $format);
+		sendDataContent($format, @md5s);
 	} elsif ($format eq "musicxml") {
-		sendDataContent($md5, $format);
+		sendDataContent($format, @md5s);
 	} 
 
 	# dynamic formats
 	elsif ($format eq "lyrics") {
-		sendDataContent($md5, $format);
+		sendDataContent($format, @md5s);
 	} elsif ($format =~ /^info-(aton|json)/) {
-		sendDataContent($md5, $format);
+		sendDataContent($format, @md5s);
 	}
 
 	errorMessage("Unknown data format: $format");
@@ -135,23 +139,24 @@ sub processParameters {
 ##
 
 sub sendDataContent {
-	my ($md5, $format) = @_;
-	errorMessage("Bad MD5 tag $md5") if $md5 !~ /^[0-9a-f]{8}$/;
+	my ($format, @md5s) = @_;
+	errorMessage("Not in cache ") if @md5s < 1;
+	errorMessage("Bad MD5 tag $md5s[0]") if $md5s[0] !~ /^[0-9a-f]{8}$/;
 
 	# Statically generated data formats:
 	if ($format eq "krn") {
-		sendHumdrumContent($md5);
+		sendHumdrumContent(@md5s);
 	} elsif ($format eq "mei") {
-		sendMeiContent($md5);
+		sendMeiContent($md5s[0]);
 	} elsif ($format eq "musicxml") {
-		sendMusicxmlContent($md5);
+		sendMusicxmlContent($md5s[0]);
 	}
 
 	# Dynamically generated data formats:
 	elsif ($format eq "lyrics") {
-		sendLyricsContent($md5);
+		sendLyricsContent($md5s[0]);
 	} elsif ($format =~ /info-(aton|json)/) {
-		sendInfoContent($md5, $format);
+		sendInfoContent($format, @md5s);
 	}
 
 	errorMessage("Unknown data format B: $format");
@@ -169,20 +174,27 @@ sub sendDataContent {
 ##
 
 sub sendHumdrumContent {
-	my ($md5) = @_;
-	my $cdir = getCacheSubdir($md5, $cacheDepth);
-	my $filename = "$cachedir/$cdir/$md5.krn";
-	if (!-r $filename) {
-		errorMessage("Cannot find $cdir/$md5.krn");
+	my (@md5s) = @_;
+
+	my $output = "";
+	for (my $i=0; $i<@md5s; $i++) {
+		my $cdir = getCacheSubdir($md5s[$i], $cacheDepth);
+		my $filename = "$cachedir/$cdir/$md5s[$i].krn";
+		if (!-r $filename) {
+			errorMessage("Cannot find $cdir/$md5s[$i].krn");
+		}
+		open(FILE, $filename) or errorMessage("Cannot read $cdir/$md5s[$i].krn");
+		my $data = "";
+		while (my $line = <FILE>) {
+			$data .= $line;
+		}
+		close FILE;
+		$output .= $data;
 	}
-	open(FILE, $filename) or errorMessage("Cannot read $cdir/$md5.krn");
-	my $data = "";
-	while (my $line = <FILE>) {
-		$data .= $line;
-	}
-	close FILE;
-	print "Content-Type: text/plain\n\n";
-	print $data;
+
+	print "Content-Type: text/x-humdrum;charset=UTF-8\n";
+	print "\n";
+	print $output;
 	exit(0);
 }
 
@@ -279,7 +291,7 @@ sub sendLyricsContent {
 	my $cdir = getCacheSubdir($md5, $cacheDepth);
 	my $command = "$lyrics -hbv \"$cachedir/$cdir/$md5.krn\"";
 	my $data = `$command`;
-	print "Content-Type: text/html; charset=utf-8\n";
+	print "Content-Type: text/html;charset=UTF-8\n";
 	print "Content-Disposition: inline; filename=\"$OPTIONS{'id'}-lyrics.html\"\n";
 	print "\n";
 	print $data;
@@ -290,23 +302,43 @@ sub sendLyricsContent {
 
 ##############################
 ##
-## sendInfoContent -- (Dynamic content) Send basic metadata about a file.
+## sendInfoContent -- (Dynamic content) Send basic metadata about a file.  More
+##   Than one file's info is allowed to be send at a time.
 ##
 
 sub sendInfoContent {
-	my ($md5, $format) = @_;
-	my $command = "$getInfo";
-	$command .= " -j" if $format =~ /json/i;
-	$command .= " $md5";
-	my $data = `(cd $cachedir && $command)`;
-	my $mime = "text/aton";
+	my ($format, @md5s) = @_;
+
+	my $output = "";
+	$output .= "[\n" if (@md5s > 1) && ($format =~ /json/i);
+
+	for (my $i=0; $i<@md5s; $i++) {
+		my $command = "$getInfo";
+		$command .= " -j" if $format =~ /json/i;
+		$command .= " $md5s[$i]";
+		my $data = `(cd $cachedir && $command)`;
+		if (($format =~ /json/i) && ($i < @md5s - 1)) {
+			$data =~ s/\s+$//;
+			$data .= ",\n";
+		} elsif (($format !~ /json/i) && (@md5s > 1)) {
+			$data =~ s/^\s+//;
+			$data =~ s/\s+$//;
+			$data = "\@\@BEGIN:\t\tENTRY\n$data\n\@\@END:\t\t\tENTRY\n\n";
+		}
+		$output .= $data;
+	}
+
+	$output .= "]\n" if (@md5s > 1) && ($format =~ /json/i);
+
+	my $mime = "text/x-aton";
 	$mime = "application/json" if $format =~ /json/i;
 	my $ext = "aton";
 	$ext = "json" if $format =~ /json/i;
+
 	print "Content-Type: $mime; charset=utf-8\n";
 	print "Content-Disposition: inline; filename=\"$OPTIONS{'id'}-info.$ext\"\n";
 	print "\n";
-	print $data;
+	print $output;
 	exit(0);
 }
 
@@ -323,22 +355,27 @@ sub sendInfoContent {
 ##
 
 sub splitFormatFromId {
+	# id?format=format form
 	my $id = $OPTIONS{"id"};
 	my $format = $OPTIONS{"format"};
 
 	my $newformat = "";
 	if ($id =~ /^([^\/]+)\/([^\/]+)$/) {
+		# id/format form
 		$id = $1;
 		$newformat = $2;
 	} elsif ($id =~ s/\.([0-9a-zA-Z_-]+)$//) {
+		# id.format form
 		$newformat = $1;
 	}
 
+	# Store newformat in format if format is not empty.
 	if ($newformat !~ /^\s*$/) {
 		if ($format =~ /^\s*$/) {
 			$format = $newformat;
 		}
 	}
+	# Default format is Humdrum data
 	if ($format =~ /^\s*$/) {
 		$format = "krn";
 	}
@@ -377,8 +414,17 @@ sub getCacheSubdir {
 ## getMd5 -- Input an ID and return an MD5 8-hex-digit cache ID.
 ##
 
+sub getMd5s {
+	my ($cacheIndex, @ids) = @_;
+	my @output;
+	for (my $i=0; $i<@ids; $i++) {
+		$output[@output] = getMd5($cacheIndex, $ids[$i]);
+	}
+	return @output;
+}
+
 sub getMd5 {
-	my ($id, $cacheIndex) = @_;
+	my ($cacheIndex, $id) = @_;
 	open (FILE, $cacheIndex) or errorMessage("Cannot find cache index.");
 	my @headings;
 	while (my $line = <FILE>) {
@@ -415,7 +461,8 @@ sub getMd5 {
 
 sub errorMessage {
 	my ($message) = @_;
-	print "Content-Type: text/html\n\n";
+	print "Content-Type: text/html;charset=UTF-8\n";
+	print "\n";
 	print <<"EOT";
 <html>
 <head>
@@ -440,7 +487,8 @@ EOT
 sub sendTestPage {
 	my ($id, $format) = @_;
 
-	print "Content-Type: text/html\n\n";
+	print "Content-Type: text/html;charset=UTF-8\n";
+	print "\n";
 	print <<"EOT";
 <html>
 <head>
