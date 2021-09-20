@@ -23,3 +23,4 @@ cache/d
 cache/e
 cache/f
 cache/*.hmd
+logs/*
