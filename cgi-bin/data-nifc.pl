@@ -352,11 +352,13 @@ sub sendInfoContent {
 	my $output = "";
 	$output .= "[\n" if (@md5s > 1) && ($format =~ /json/i);
 
+	my $debug = "";
 	for (my $i=0; $i<@md5s; $i++) {
-		my $command = "$getInfo";
+		my $command = "$getInfo -c \"$cachedir\" -i cache-index.hmd";
 		$command .= " -j" if $format =~ /json/i;
 		$command .= " $md5s[$i]";
-		my $data = `(cd $cachedir && $command)`;
+		my $subdir = getCacheSubdir($md5s[$i]);
+		my $data = `(cd $cachedir/$subdir && $command)`;
 		if (($format =~ /json/i) && ($i < @md5s - 1)) {
 			$data =~ s/\s+$//;
 			$data .= ",\n";
@@ -378,7 +380,7 @@ sub sendInfoContent {
 	print "Content-Type: $mime; charset=utf-8\n";
 	print "Content-Disposition: inline; filename=\"$OPTIONS{'id'}-info.$ext\"\n";
 	print "\n";
-	print $output;
+	print "$debug  \n\n", $output;
 	exit(0);
 }
 

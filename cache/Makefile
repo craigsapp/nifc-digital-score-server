@@ -83,17 +83,6 @@ recopy-kern:
 
 ##############################
 ##
-## derivatives --
-##
-
-derivative: derivatives
-derivatives: regenerate-spreadsheet-new
-	bin/makeDerivatives
-
-
-
-##############################
-##
 ## publish -- Publish new data files.
 ##
 
@@ -172,7 +161,23 @@ popc2-browse-index:
 
 ##############################
 ##
-## Derivatives:
+## derivatives --
+##
+
+derivative: derivatives
+derivatives: other-derivatives
+	bin/makeDerivatives
+
+other-derivatives: regenerate-spreadsheet-new
+
+
+
+##############################
+##
+## Generate all derivatives in the makeDerivatives system:
+##   mei:       Convert Humdrum files to MEI files.
+##   musicxml:  Convert Humdrum files to MusicXML files.
+##   thema:     Generate thema search indexes.
 ##
 
 generate-all:
@@ -184,10 +189,13 @@ regenerate-all:
 missing-all:
 	@bin/listMissingDerivatives -mcf
 
-erase-all: erase-mei erase-musicxml
+erase-all: erase-mei erase-musicxml erase-thema
 
 
 ##############################
+##
+## MEI conversions.
+##
 
 generate-mei:
 	bin/makeDerivatives -d mei
@@ -203,6 +211,9 @@ erase-mei:
 
 
 ##############################
+##
+## MusicXML conversions.
+##
 
 generate-musicxml:
 	bin/makeDerivatives -d musicxml
@@ -216,7 +227,35 @@ missing-musicxml:
 erase-musicxml:
 	bin/eraseDerivatives -d musicxml
 
+
+
 ##############################
+##
+## Thema search indexes.
+##
+
+generate-thema:
+	bin/makeDerivatives -d thema
+
+regenerate-thema:
+	bin/makeDerivatives -f -d thema
+
+missing-thema:
+	@bin/listMissingDerivatives -d thema -mcf
+
+erase-thema:
+	bin/eraseDerivatives -d thema
+
+
+###########################################################################
+##
+## Data preparations that do not use the makeDerivatives system:
+##
+
+##############################
+##
+## Download metadata from the --
+##
 
 generate-spreadsheet-new: regenerate-spreadsheet-new
 

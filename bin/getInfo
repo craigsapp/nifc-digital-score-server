@@ -30,23 +30,26 @@ use Getopt::Long;
 my $depth = 1;
 
 my $indexfile;
+my $cachedir;
 my $jsonQ = 0;
 Getopt::Long::Configure("bundling");
 GetOptions (
-	'i|indexfile' => \$indexfile,
-	'j|json' => \$jsonQ
+	'i|indexfile=s' => \$indexfile,
+	'c|cachedir=s'  => \$cachedir,
+	'j|json'        => \$jsonQ
 );
 
 my $id = $ARGV[0];
 
-$indexfile = "index.hmd" if $indexfile =~ /^\s*$/;
+die "Cache directory is required" if $cachedir =~ /^\s*$/;
+$indexfile = "cache-index.hmd" if $indexfile =~ /^\s*$/;
 
 my %IndexMd5;
 my %IndexCentid;
 my %IndexFileid;
 my %IndexCentidReverse;
 my %IndexFileidReverse;
-getIndexes($indexfile);
+getIndexes("$cachedir/$indexfile");
 
 my $output = generateInfo($id);
 $output = convertToJson($output) if $jsonQ;
@@ -157,7 +160,7 @@ sub generateInfo {
 	my $mei      = 0;
 	my $musicxml = 0;
 
-	my @files = glob("$dir/*");
+	my @files = glob("$cachedir/$dir/*");
 	foreach my $file (@files) {
 		$mei = 1 if $file =~ /\.mei/;
 		$musicxml = 1 if $file =~ /\.musicxml/;
@@ -166,7 +169,7 @@ sub generateInfo {
 	$output .= "\@mei:\t\t\t$mei\n";
 	$output .= "\@musicxml:\t\t$musicxml\n";
 
-	my $kernfile = "$dir/$md5.krn";
+	my $kernfile = "$cachedir/$dir/$md5.krn";
 	my $lyrics   = 0;
 	my $filename = "";
 	
@@ -243,7 +246,7 @@ sub generateInfo {
 	}
 
 	my $targetdir = getTargetDir($md5, $depth);
-	my $sfile = "$targetdir/$md5-spreadsheet.aton";
+	my $sfile = "$cachedir/$targetdir/$md5-spreadsheet.aton";
 	if (-r $sfile) {
 		if (open(FILE, $sfile)) {
 			my @contents = <FILE>;

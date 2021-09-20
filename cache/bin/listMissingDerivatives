@@ -2,7 +2,7 @@
 #
 # Programmer:    Craig Stuart Sapp <craig.stanford.edu>
 # Creation Date: Thu 16 Sep 2021 05:27:02 PM PDT
-# Last Modified: Thu 16 Sep 2021 05:27:04 PM PDT
+# Last Modified: Mon 20 Sep 2021 11:06:19 AM PDT
 # Filename:      cache/bin/listMissingDerivatives
 # Syntax:        perl 5
 # vim:           ts=3
@@ -12,6 +12,7 @@
 # Derivatives that can be checked
 #    mei      == MEI files
 #    musicxml == MusicXML files
+#    thema    == Thema search indexes
 #
 
 use strict;
@@ -46,7 +47,7 @@ my %Index = getIndex($indexfile);
 #	print "$key\t$Index{$key}\n";
 #}
 
-$derivatives = "mei,musicxml" if $derivatives =~ /^\s*$/;
+$derivatives = "mei,musicxml.thema" if $derivatives =~ /^\s*$/;
 $derivatives =~ s/^[^0-9a-zA-Z_-]+//;
 $derivatives =~ s/[^0-9a-zA-Z_-]+$//;
 my @derivativeList = split (/[^0-9a-zA-Z_-]+/, $derivatives);
@@ -60,22 +61,11 @@ if ($bindir !~ /\/bin$/) {
 
 die "ERROR: Cannot find bin directory $bindir\n" if !-d $bindir;
 
-listMissingDerivatives("0");
-listMissingDerivatives("1");
-listMissingDerivatives("2");
-listMissingDerivatives("3");
-listMissingDerivatives("4");
-listMissingDerivatives("5");
-listMissingDerivatives("6");
-listMissingDerivatives("7");
-listMissingDerivatives("8");
-listMissingDerivatives("9");
-listMissingDerivatives("a");
-listMissingDerivatives("b");
-listMissingDerivatives("c");
-listMissingDerivatives("d");
-listMissingDerivatives("e");
-listMissingDerivatives("f");
+my $groups = "0123456789abcdef";
+my @list = split(//, $groups);
+foreach my $dir (@list) {
+	listMissingDerivatives($dir);
+}
 
 exit(0);
 
@@ -124,6 +114,7 @@ sub listMissingDerivativesForEntry {
 	die "Cannot locate directory $basedir/$md5\n" if !-d "$basedir/$md5";
 	die "Cannot locate source file $basedir/$md5/$md5.krn\n" if !-r "$basedir/$md5/$md5.krn";
 	foreach my $derivative (@derivativeList) {
+
 		if ($derivative eq "mei") {
 			if (!-r "$basedir/$md5/$md5.mei.gz") {
 				if (@derivativeList > 1) {
@@ -140,6 +131,7 @@ sub listMissingDerivativesForEntry {
 				}
 				print "\n";
 			}
+
 		} elsif ($derivative eq "musicxml") {
 			if (!-r "$basedir/$md5/$md5.musicxml.gz") {
 				if (@derivativeList > 1) {
@@ -156,6 +148,24 @@ sub listMissingDerivativesForEntry {
 				}
 				print "\n";
 			}
+
+		} elsif ($derivative eq "themax") {
+			if (!-r "$basedir/$md5/$md5-pitch.thema") {
+				if (@derivativeList > 1) {
+					print "$derivative\t";
+				}
+				print "$Index{$md5}";
+				if ($fileQ) {
+					my $filename = getFilename($md5);
+					if ($Index{$md5} eq "") {
+						print $filename;
+					} else {
+						print "\t$filename";
+					}
+				}
+				print "\n";
+			}
+
 		}
 	}
 }

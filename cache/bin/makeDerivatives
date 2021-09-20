@@ -24,10 +24,12 @@
 #                     derivatives.  Allowed derivative types:
 #                        mei      == Create MEI file (using verovio)
 #                        musicxml == Create MusicXML file (using converter21)
+#                        thema    == Create Thema search indexes (uses tindex)
 #
 # Each derivative is made with a separate script in the form derivative-*:
 #     derivative-mei       == Creates MEI files.
 #     derivative-musicxml  == Creates MusicXML files.
+#     derivative-thema     == Creates Thema music search index file(s).
 #
 # Other dynamic-content files are generated on-the-fly by the CGI script.
 #
@@ -50,7 +52,7 @@ GetOptions (
 $groups = "0123456789abcdef" if $groups =~ /^\s*$/;
 $groups = reverse($groups) if $reverseQ;
 
-$derivatives = "mei,musicxml" if $derivatives =~ /^\s*$/;
+$derivatives = "mei,musicxml,thema" if $derivatives =~ /^\s*$/;
 $derivatives =~ s/^[^0-9a-zA-Z_-]+//;
 $derivatives =~ s/[^0-9a-zA-Z_-]+$//;
 my @derivativeList = split (/[^0-9a-zA-Z_-]+/, $derivatives);
