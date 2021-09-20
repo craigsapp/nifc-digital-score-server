@@ -37,6 +37,9 @@ use strict;
 # basedir == The location of the files for the website.
 my $basedir    = "/project/data-nifc/data-nifc";
 
+# logdir == directory where access logs are stored.
+my $logdir     =  "/project/data-nifc/data-nifc/logs";
+
 # cachedir == The absolute path to the cache directory.
 my $cachedir   = "$basedir/cache";
 
@@ -76,6 +79,7 @@ if ($OPTIONS{"format"} =~ /^\s*$/) {
 }
 splitFormatFromId();
 
+writeLog($logdir, $OPTIONS{"id"}, $OPTIONS{"format"});
 
 # Return requested data:
 if ($OPTIONS{"id"} =~ /index/i) {
@@ -666,6 +670,91 @@ sub cleanId {
 	}
 
 	return $id;
+}
+
+
+
+##############################
+##
+## writeLog -- It is presumed that the log directory is writable by this script;
+##     otherwise, no logs will be written.  Access logs are split into months
+##     to allow archiving or deleting old logs as necessary.
+##
+
+sub writeLog {
+	my ($logdir, $id, $format) = @_;
+	my %date = getDate();
+	my $logfile = "$logdir/$date{'year'}$date{'month'}.log";
+	my $datestring = $date{"year"};
+	$datestring .= $date{"month"};
+	$datestring .= $date{"day"};
+	$datestring .= $date{"hour"};
+	$datestring .= $date{"min"};
+	$datestring .= $date{"sec"};
+	my $ipaddress = $ENV{"REMOTE_ADDR"};
+	my $entry = "$datestring\t$ipaddress\t$format\t$id\n";
+	if (open(LOGFILE, ">>$logfile")) {
+		print LOGFILE $entry;
+		close LOGFILE;
+	}
+}
+
+
+
+##############################
+##
+## getDate -- 
+##
+
+sub getDate {
+   my $cyear;     # current year
+   my $cmonth;    # current month (zero-padded)
+   my $cday;      # current day (zero-padded)
+   my $chour;     # current hour (zero-padded)
+   my $cmin;      # current minute (zero-padded)
+   my $csec;      # current second (zero-padded)
+   my $weekday;   # current weekday
+   my $dayofyear; # current day of year
+   my $isdst;     # current timezone
+
+   ($csec, $cmin, $chour, $cday, $cmonth, $cyear,
+         $weekday, $dayofyear, $isdst) = localtime(time);
+
+   $cmonth += 1;     # fix month so that it is in the range [
+   $cyear += 1900;   # fix year so that it is actual year.
+
+   if ($cmonth < 10) {
+      $cmonth = int($cmonth);
+      $cmonth = "0$cmonth";
+   }
+   if ($cday < 10) {
+      $cday = int($cday);
+      $cday = "0$cday";
+   }
+   if ($chour < 10) {
+      $chour = int($chour);
+      $chour = "0$chour";
+   }
+   if ($cmin < 10) {
+      $cmin = int($cmin);
+      $cmin = "0$cmin";
+   }
+   if ($csec < 10) {
+      $csec = int($csec);
+      $csec = "0$csec";
+   }
+
+	my %output;
+	$output{"year"} = $cyear;
+	$output{"month"} = $cmonth;
+	$output{"day"} = $cday;
+	$output{"hour"} = $chour;
+	$output{"min"} = $cmin;
+	$output{"sec"} = $csec;
+	$output{"weekday"} = $weekday;
+	$output{"dayofyear"} = $dayofyear;
+	$output{"timezone"} = $isdst;
+	return %output;
 }
 
 

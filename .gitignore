@@ -24,3 +24,4 @@ cache/e
 cache/f
 cache/*.hmd
 cache/indexes
+logs/*
