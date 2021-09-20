@@ -236,15 +236,20 @@ erase-musicxml:
 
 generate-thema:
 	bin/makeDerivatives -d thema
+	cat */*/*-pitch.thema > indexes/thema-pitch.txt
+	gzip indexes/thema-pitch.txt
 
 regenerate-thema:
 	bin/makeDerivatives -f -d thema
+	cat */*/*-pitch.thema > indexes/thema-pitch.txt
+	gzip indexes/thema-pitch.txt
 
 missing-thema:
 	@bin/listMissingDerivatives -d thema -mcf
 
 erase-thema:
 	bin/eraseDerivatives -d thema
+	rm indexes/thema-pitch.txt.gz
 
 
 ###########################################################################

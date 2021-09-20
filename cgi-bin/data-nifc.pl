@@ -13,6 +13,8 @@
 #    Indexing resources:
 #       popc2-browse-index.json  == POPC-2 browse search index in JSON format.
 #       popc2-browse-index.aton  == POPC-2 browse search index in ATON format.
+#    Search indexes:
+#    		thema-pitch == Melodic pitch search index (all works).
 #    Quasi-score ids:
 #       random    ==  Get random score from cache.
 #    Static cached formats:
@@ -82,7 +84,9 @@ splitFormatFromId();
 writeLog($logdir, $OPTIONS{"id"}, $OPTIONS{"format"});
 
 # Return requested data:
-if ($OPTIONS{"id"} =~ /index/i) {
+if ($OPTIONS{"id"} =~ /thema/i) {
+	sendThemaIndex($OPTIONS{"id"}, $OPTIONS{"format"});
+} elsif ($OPTIONS{"id"} =~ /index/i) {
 	sendIndex($OPTIONS{"id"}, $OPTIONS{"format"});
 } elsif ($OPTIONS{"id"} eq "test") {
 	# id == test :: print ENV and input parameters for debugging and development.
@@ -203,6 +207,43 @@ sub sendIndex {
 
 
 
+##############################
+##
+## sendThemaIndex -- Music search index content delivery function.
+##
+
+sub sendThemaIndex {
+	my ($base, $format) = @_;
+	$base =~ s/[^a-zA-Z0-9_-]//g;
+	# format is ignored
+	$format =~ s/[^a-zA-Z0-9_-]//g;
+	my $file = "$cachedir/indexes/$base.txt.gz";
+	if (!-r $file) {
+		errorMessage("Cannot find music search index: $base.");
+	}
+	my $charset = ";charset=UTF-8";
+	my $mime = "text/plain";
+	my $compressQ = 0;
+	$compressQ = 1 if $ENV{'HTTP_ACCEPT_ENCODING'} =~ /\bgzip\b/;
+	if ($compressQ) {
+		# Browser understands gzip compression, so send compressed:
+		my $data = `cat "$file"`;
+		print "Content-Type: $mime$charset\n";
+		print "Content-Encoding: gzip\n";
+		print "\n";
+		print $data;
+	} else {
+		# Browser does not understand gzip compression, so send uncompressed:
+		my $data = `zcat "$file"`;
+		print "Content-Type: $mime$charset\n";
+		print "\n";
+		print $data;
+	}
+	exit(0);
+}
+
+
+
 ###########################################################################
 ##
 ## Static content delivery functions:
@@ -216,25 +257,31 @@ sub sendIndex {
 sub sendHumdrumContent {
 	my (@md5s) = @_;
 
-	my $output = "";
+	my $filelist = "";
 	for (my $i=0; $i<@md5s; $i++) {
 		my $cdir = getCacheSubdir($md5s[$i], $cacheDepth);
 		my $filename = "$cachedir/$cdir/$md5s[$i].krn";
 		if (!-r $filename) {
 			errorMessage("Cannot find $cdir/$md5s[$i].krn");
 		}
-		open(FILE, $filename) or errorMessage("Cannot read $cdir/$md5s[$i].krn");
-		my $data = "";
-		while (my $line = <FILE>) {
-			$data .= $line;
-		}
-		close FILE;
-		$output .= $data;
+		$filelist .= " $filename";
 	}
 
-	print "Content-Type: text/x-humdrum;charset=UTF-8\n";
-	print "\n";
-	print $output;
+	# Try to send the data in compressed format, if available:
+	my $compressQ = 0;
+	$compressQ = 1 if $ENV{'HTTP_ACCEPT_ENCODING'} =~ /\bgzip\b/;
+	if ($compressQ) {
+		my $data = `cat $filelist | gzip`;
+		print "Content-Type: text/x-humdrum;charset=UTF-8\n";
+		print "Content-Encoding: gzip\n";
+		print "\n";
+		print $data;
+	} else {
+		my $data = `cat $filelist | gzip`;
+		print "Content-Type: text/x-humdrum;charset=UTF-8\n";
+		print "\n";
+		print $data;
+	}
 	exit(0);
 }
 
