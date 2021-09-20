@@ -683,6 +683,10 @@ sub cleanId {
 
 sub writeLog {
 	my ($logdir, $id, $format) = @_;
+
+	# Do not log favicon.ico requests:
+	return if ($id eq "favicon") && ($format eq "ico");
+
 	my %date = getDate();
 	my $logfile = "$logdir/$date{'year'}$date{'month'}.log";
 	my $datestring = $date{"year"};
