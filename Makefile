@@ -1,19 +1,24 @@
 ##
 ## Programmer:    Craig Stuart Sapp <craig@ccrma.stanford.edu>
 ## Creation Date: Sun Aug 15 11:16:54 CEST 2021
-## Last Modified: Mon Aug 23 06:06:09 CEST 2021
+## Last Modified: Sun 19 Sep 2021 09:01:44 AM PDT
 ## Syntax:        GNU Makefile
-## Filename:      nifc-humdrum-data/Makefile
+## Filename:      Makefile
 ## vim:           ts=3
 ##
 ## Description:   Makefile to run tasks for nifc-humdrum-data repository.
 ##
-## Usage:
+## Usage:         Type "make" to see list of common make targets.  To update everything,
+##                type "make update" if the server has already been set up.
 ##
 
 
 .PHONY: kern
 
+
+# KERNREPOS: This is a list of all of the directories where Humdrum files
+# are located that should be incorporated into this data server for the
+# files.
 KERNREPOS =  ../humdrum-chopin-first-editions  \
 	../humdrum-polish-scores/pl-cz              \
 	../humdrum-polish-scores/pl-kk              \
@@ -23,6 +28,9 @@ KERNREPOS =  ../humdrum-chopin-first-editions  \
 	../humdrum-polish-scores/pl-wn              \
 	../humdrum-polish-scores/pl-wtm
 
+
+# TARGETDIR: The directory into which symbolic links to Humdrum files in the
+# KERNREPOS directory list are located.
 TARGETDIR = kern
 
 
@@ -36,7 +44,20 @@ all:
 	@echo "Makefile targets:"
 	@echo "   make kern        -- Create symbolic links to digital scores."
 	@echo "   make count       -- Count the number of linked kern files."
+	@echo "   make update      -- Run \"make kern\" then update cache."
 	@echo
+
+
+
+##############################
+##
+## update -- Prepare kern directory, then update cache files.
+##    The files in the ../humdrum-polish-scores repository should
+##    be up to date before running this command. (and humdrum-chopin-first-editions)
+##
+
+update: kern
+	(cd cache; make update)
 
 
 

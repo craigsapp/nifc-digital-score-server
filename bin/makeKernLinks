@@ -5,6 +5,7 @@
 # Last Modified: Sun Aug 15 10:23:16 CEST 2021
 # Filename:      nifc-humdrum-data/bin/makeKernLinks
 # Syntax:        perl 5
+# vim:           ts=3
 #
 # Description:   Collects files from various repositories (POPC1 and POPC2)
 #                into nifc-humdrum-data/kern directory.  The files are linked

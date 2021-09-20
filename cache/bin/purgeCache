@@ -36,7 +36,7 @@ $purgedir = "purged" if $purgedir =~ /^\s*$/;
 die "ERROR $purgedir is empty" if $purgedir =~ /^\s*$/;
 die "ERROR $purgedir is invalid" if $purgedir =~ /^[.\/]+/;
 
-$indexfile = "index.hmd" if $indexfile =~ /^\s*$/;
+$indexfile = "cache-index.hmd" if $indexfile =~ /^\s*$/;
 
 my %index = getIndex($indexfile);
 

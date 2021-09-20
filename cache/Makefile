@@ -4,7 +4,7 @@
 ## Last Modified: Sat 18 Sep 2021 06:44:11 PM PDT
 ## Syntax:        GNU Makefile
 ## Filename:      cache/Makefile
-## vim:           ts=3
+## vim:           ts=3:nowrap
 ##
 ## Description:   Makefile to run cache tasks for nifc-humdrum-data repository.
 ##
@@ -23,11 +23,13 @@ all:
 	@echo "Minimal usage: \"make update\" then \"make erase-purge\"."
 	@echo
 	@echo "make update      == Make: index copy-kern derivatives publish purge."
-	@echo "make index       == Create cache index."
-	@echo "make copy-kern   == Copy files from kern directory to cache using index-new.hmd."
-	@echo "make recopy-kern == Copy files from kern directory to cache using index.hmd."
+	@echo "make cache-index == Create main cache index (cache-index-new.hmd)."
+	@echo "make copy-kern   == Copy files from kern directory to cache using cache-index-new.hmd."
+	@echo "make recopy-kern == Copy files from kern directory to cache using cache-index.hmd."
 	@echo "make derivatives == Run analyses for new files."
-	@echo "make publish     == Activate the index for the new set of files. (Move index-new.hmd to index.hmd)"
+	@echo "make indexes     == Create cached indexes before publication."
+	@echo "make indexes-new == Create cached indexes before publication."
+	@echo "make publish     == Activate the index for the new set of files. (Move cache-index-new.hmd to cache-index.hmd)"
 	@echo "make purge       == Remove files no longer in index."
 	@echo "make erase-purge == Remove files from purged directory."
 	@echo "make erase-cache == Remove all files from cache."
@@ -42,21 +44,22 @@ all:
 ##     purge old files from cache.
 ##
 
-update: index copy-kern derivatives publish purge
+update: cache-index copy-kern derivatives indexes-new publish purge
 
 
 
 ##############################
 ##
-## index -- Create new cache index.  Reads files from ../kern and
+## cache-index -- Create new cache index.  Reads files from ../kern and
 ##      creates an index of various IDs for each file.  The index
 ##      is stored in a temporary file with a "-new" prefix so that
-##      the old set of files can be served while new files are
-##      prepared.
+##      the old set of files can be served while new derivative files
+##      and indexes are prepared.
 ##
 
-index:
-	bin/makeIndex > index-new.hmd
+index: cache-index
+cache-index:
+	bin/makeCacheIndex > cache-index-new.hmd
 
 
 
@@ -69,12 +72,12 @@ ck: copy-kern
 kern: copy-kern
 copy: copy-kern
 copy-kern:
-	bin/copyKernToCache -i index-new.hmd
+	bin/copyKernToCache -i cache-index-new.hmd
 
 rk: recopy-kern
 recopy: recopy-kern
 recopy-kern:
-	bin/copyKernToCache -i index.hmd
+	bin/copyKernToCache -i cache-index.hmd
 
 
 
@@ -95,8 +98,8 @@ derivatives: regenerate-spreadsheet-new
 ##
 
 publish:
-	-mv index.hmd index-old.hmd
-	mv index-new.hmd index.hmd
+	-mv cache-index.hmd cache-index-old.hmd
+	mv cache-index-new.hmd cache-index.hmd
 
 
 
@@ -107,6 +110,12 @@ publish:
 
 purge:
 	bin/purgeCache
+	@echo
+	@echo Purged entries:
+	-ls purged
+	@echo
+	@echo "Check purged directory contents and then type"
+	@echo "\"make erase-purge\" if the purged contents should be deleted"
 
 
 
@@ -133,16 +142,28 @@ erase-cache:
 
 ##############################
 ##
-## Indexes:
+## Indexes:  -new targets should be run before "make publish", and non-new
+##     versions should be run after "make publish".  The difference
+##     is related to which index file is read for preparing the indexes.
 ##
 
+indexes-new: popc2-browse-index-new
 indexes: popc2-browse-index
+
+popc2-browse-index-new:
+	@mkdir -p indexes
+	-rm -f indexes/popc2-browse-index.aton.gz
+	-rm -f indexes/popc2-browse-index.json.gz
+	bin/makePopc2Index -i cache-index-new.hmd > indexes/popc2-browse-index.aton
+	(cd indexes; aton2json popc2-browse-index.aton | sed 's/^{"ENTRY"://; s/}[]]}$$/}]/' > popc2-browse-index.json)
+	(cd indexes; gzip popc2-browse-index.json)
+	(cd indexes; gzip popc2-browse-index.aton)
 
 popc2-browse-index:
 	@mkdir -p indexes
 	-rm -f indexes/popc2-browse-index.aton.gz
 	-rm -f indexes/popc2-browse-index.json.gz
-	bin/makePopc2Index > indexes/popc2-browse-index.aton
+	bin/makePopc2Index -i cache-index.hmd > indexes/popc2-browse-index.aton
 	(cd indexes; aton2json popc2-browse-index.aton | sed 's/^{"ENTRY"://; s/}[]]}$$/}]/' > popc2-browse-index.json)
 	(cd indexes; gzip popc2-browse-index.json)
 	(cd indexes; gzip popc2-browse-index.aton)
@@ -207,7 +228,7 @@ regenerate-spreadsheet:
 
 #regenerate-spreadsheet-new: erase-spreadsheet
 regenerate-spreadsheet-new:
-	bin/makeSpreadsheetInfo -i index-new.hmd
+	bin/makeSpreadsheetInfo -i cache-index-new.hmd
 
 erase-spreadsheet:
 	rm ?/*/*-spreadsheet.aton

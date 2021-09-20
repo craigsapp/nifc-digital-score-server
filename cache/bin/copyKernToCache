@@ -30,7 +30,7 @@ GetOptions (
    'k|kerndir=s' => \$kerndir
 );
 
-$indexfile = "index.hmd" if $indexfile =~ /^\s*$/;
+$indexfile = "cache-index.hmd" if $indexfile =~ /^\s*$/;
 $kerndir   = "../kern"   if $kerndir   =~ /^\s*$/;
 
 # Cache depth (number of subdirectory levels until file directories).

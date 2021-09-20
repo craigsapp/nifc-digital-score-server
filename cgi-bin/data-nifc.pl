@@ -41,7 +41,7 @@ my $basedir    = "/project/data-nifc/data-nifc";
 my $cachedir   = "$basedir/cache";
 
 # cachedir == The absolute path to the cache index file.
-my $cacheIndex = "$cachedir/index.hmd";
+my $cacheIndex = "$cachedir/cache-index.hmd";
 
 # cacheDepth == The number of subdirectories before reaching individual cache directory.
 my $cacheDepth = 1;

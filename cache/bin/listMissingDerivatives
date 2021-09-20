@@ -40,7 +40,7 @@ if ((!$centuryQ) && (!$fileidQ) && (!$fileQ) && (!$md5Q)) {
 	$fileidQ  = 1;
 }
 
-my $indexfile = "index.hmd";
+my $indexfile = "cache-index.hmd";
 my %Index = getIndex($indexfile);
 #for my $key (sort keys %Index) {
 #	print "$key\t$Index{$key}\n";

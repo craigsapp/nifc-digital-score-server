@@ -7,7 +7,7 @@
 # Syntax:        perl 5
 # vim:           ts=3
 #
-# Description:   Reads index.hmd to generate a list of browse search fields.
+# Description:   Reads cache-index.hmd to generate a list of browse search fields.
 #
 
 use strict;
@@ -22,7 +22,7 @@ GetOptions (
    'i|index=s' => \$indexfile
 );
 
-$indexfile = "index.hmd" if $indexfile =~ /^\s*$/;
+$indexfile = "cache-index.hmd" if $indexfile =~ /^\s*$/;
 
 # Cache depth (number of subdirectory levels until file directories).
 my $cacheDepth = 1;
@@ -62,10 +62,31 @@ sub prepareEntry {
 	$composer = $references{"COS1"} if $composer =~ /^\s*$/;
 	die "No composer field in file $kernfile\n" if $composer =~ /^\s*$/;
 
+	my $title = "";
+	my $GTL = $references{"GTL"};
+	my $PTL = $references{"PTL"};
+	my $OTL = $references{"OTL"};
+	if (($GTL !~ /^\s*$/) && ($PTL !~ /^\s*$/) && ($GTL !~ /^\s*$/)) {
+		$title = "$GTL &mdash; $PTL &mdash; $OTL";
+	} elsif (($GTL !~ /^\s*$/) && ($PTL !~ /^\s*$/)) {
+		$title = "$GTL &mdash; $PTL";
+	} elsif (($GTL !~ /^\s*$/) && ($OTL !~ /^\s*$/)) {
+		$title = "$GTL &mdash; $OTL";
+	} elsif (($PTL !~ /^\s*$/) && ($OTL !~ /^\s*$/)) {
+		$title = "$PTL &mdash; $OTL";
+	} elsif ($GTL !~ /^\s*$/) {
+		$title = $GTL;
+	} elsif ($PTL !~ /^\s*$/) {
+		$title = $PTL;
+	} elsif ($OTL !~ /^\s*$/) {
+		$title = $OTL;
+	}
+
 	my $output = "";
 	$output .= "\@\@BEGIN:\tENTRY\n";
-	$output .= "\@CENID:\t\t$cenid\n";
+	$output .= "\@cenid\t\t$cenid\n";
 	$output .= "\@COM:\t\t$composer\n";
+	$output .= "\@title:\t\t$title\n";
 	$output .= "\@\@END:\t\tENTRY\n";
 	$output .= "\n";
 

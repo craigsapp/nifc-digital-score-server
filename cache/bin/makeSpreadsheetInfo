@@ -35,7 +35,7 @@ GetOptions (
 my $sheeturl = "https://script.google.com/macros/s/$macroid/exec?format=aton&lang=en";
 my %entriesByCentid = getEntriesByCentid($sheeturl);
 
-$indexfile = "index.hmd" if $indexfile =~ /^\s*$/;
+$indexfile = "cache-index.hmd" if $indexfile =~ /^\s*$/;
 my %index = getCentToMd5Index($indexfile);
 
 foreach my $centid (sort keys %index) {
