@@ -14,7 +14,7 @@
 #       popc2-browse-index.json  == POPC-2 browse search index in JSON format.
 #       popc2-browse-index.aton  == POPC-2 browse search index in ATON format.
 #    Search indexes:
-#    		thema-pitch == Melodic pitch search index (all works).
+#    		pitch.thema == Melodic pitch search index (all works).
 #    Quasi-score ids:
 #       random    ==  Get random score from cache.
 #    Static cached formats:
@@ -30,6 +30,8 @@
 #
 
 use strict;
+
+my $newline = "\r\n";
 
 ##############################
 ##
@@ -84,7 +86,7 @@ splitFormatFromId();
 writeLog($logdir, $OPTIONS{"id"}, $OPTIONS{"format"});
 
 # Return requested data:
-if ($OPTIONS{"id"} =~ /thema/i) {
+if ($OPTIONS{"format"} =~ /thema/i) {
 	sendThemaIndex($OPTIONS{"id"}, $OPTIONS{"format"});
 } elsif ($OPTIONS{"id"} =~ /index/i) {
 	sendIndex($OPTIONS{"id"}, $OPTIONS{"format"});
@@ -198,9 +200,9 @@ sub sendIndex {
 	$mime = "text/x-aton" if $format eq "aton";
 	$mime = "application/json" if $format eq "json";
 	my $data = `cat "$file"`;
-	print "Content-Type: $mime$charset\n";
-	print "Content-Encoding: gzip\n";
-	print "\n";
+	print "Content-Type: $mime$charset$newline";
+	print "Content-Encoding: gzip$newline";
+	print "$newline";
 	print $data;
 	exit(0);
 }
@@ -215,9 +217,8 @@ sub sendIndex {
 sub sendThemaIndex {
 	my ($base, $format) = @_;
 	$base =~ s/[^a-zA-Z0-9_-]//g;
-	# format is ignored
 	$format =~ s/[^a-zA-Z0-9_-]//g;
-	my $file = "$cachedir/indexes/$base.txt.gz";
+	my $file = "$cachedir/indexes/$format-$base.txt.gz";
 	if (!-r $file) {
 		errorMessage("Cannot find music search index: $base.");
 	}
@@ -228,15 +229,15 @@ sub sendThemaIndex {
 	if ($compressQ) {
 		# Browser understands gzip compression, so send compressed:
 		my $data = `cat "$file"`;
-		print "Content-Type: $mime$charset\n";
-		print "Content-Encoding: gzip\n";
-		print "\n";
+		print "Content-Type: $mime$charset$newline";
+		print "Content-Encoding: gzip$newline";
+		print "$newline";
 		print $data;
 	} else {
 		# Browser does not understand gzip compression, so send uncompressed:
 		my $data = `zcat "$file"`;
-		print "Content-Type: $mime$charset\n";
-		print "\n";
+		print "Content-Type: $mime$charset$newline";
+		print "$newline";
 		print $data;
 	}
 	exit(0);
@@ -273,16 +274,16 @@ sub sendHumdrumContent {
 	$compressQ = 1 if $ENV{'HTTP_ACCEPT_ENCODING'} =~ /\bgzip\b/;
 	if ($compressQ) {
 		my $data = `cat $filelist | gzip`;
-		print "Content-Type: text/x-humdrum;charset=UTF-8\n";
-		print "Content-Disposition: inline; filename=\"$OPTIONS{'id'}.txt\"\n";
-		print "Content-Encoding: gzip\n";
-		print "\n";
+		print "Content-Type: text/x-humdrum;charset=UTF-8$newline";
+		print "Content-Disposition: inline; filename=\"$OPTIONS{'id'}.txt\"$newline";
+		print "Content-Encoding: gzip$newline";
+		print "$newline";
 		print $data;
 	} else {
 		my $data = `cat $filelist`;
-		print "Content-Type: text/x-humdrum;charset=UTF-8\n";
-		print "Content-Disposition: inline; filename=\"$OPTIONS{'id'}.txt\"\n";
-		print "\n";
+		print "Content-Type: text/x-humdrum;charset=UTF-8$newline";
+		print "Content-Disposition: inline; filename=\"$OPTIONS{'id'}.txt\"$newline";
+		print "$newline";
 		print $data;
 	}
 	exit(0);
@@ -307,19 +308,20 @@ sub sendMeiContent {
 	my $compressQ = 0;
 	$compressQ = 1 if $ENV{'HTTP_ACCEPT_ENCODING'} =~ /\bgzip\b/;
 	if (!-r "$cachedir/$cdir/$md5.$format.gz") {
-		errorMessage("MEI file is missing for $OPTIONS{'id'}.\n");
+		errorMessage("MEI file is missing for $OPTIONS{'id'}.");
 	}
 	if ($compressQ) {
 		my $data = `cat "$cachedir/$cdir/$md5.$format.gz"`;
-		print "Content-Type: $mime\n";
-		print "Content-Encoding: gzip\n";
-		print "\n";
+		print "Content-Type: $mime$newline";
+		print "Content-Encoding: gzip$newline";
+		print "$newline";
 		print $data;
 		exit(0);
 	}
 
 	my $data = `zcat "$cachedir/$cdir/$md5.$format.gz"`;
-	print "Content-Type: $mime\n\n";
+	print "Content-Type: $mime$newline";
+	print "$newline";
 	print $data;
 	exit(0);
 }
@@ -343,19 +345,20 @@ sub sendMusicxmlContent {
 	my $compressQ = 0;
 	$compressQ = 1 if $ENV{'HTTP_ACCEPT_ENCODING'} =~ /\bgzip\b/;
 	if (!-r "$cachedir/$cdir/$md5.$format.gz") {
-		errorMessage("MusicXML file is missing for $OPTIONS{'id'}.\n");
+		errorMessage("MusicXML file is missing for $OPTIONS{'id'}.");
 	}
 	if ($compressQ) {
 		my $data = `cat "$cachedir/$cdir/$md5.$format.gz"`;
-		print "Content-Type: $mime\n";
-		print "Content-Encoding: gzip\n";
-		print "\n";
+		print "Content-Type: $mime$newline";
+		print "Content-Encoding: gzip$newline";
+		print "$newline";
 		print $data;
 		exit(0);
 	}
 
 	my $data = `zcat "$cachedir/$cdir/$md5.$format.gz"`;
-	print "Content-Type: $mime\n\n";
+	print "Content-Type: $mime$newline";
+	print "$newline";
 	print $data;
 	exit(0);
 }
@@ -381,9 +384,9 @@ sub sendLyricsContent {
 	my $cdir = getCacheSubdir($md5, $cacheDepth);
 	my $command = "$lyrics -hbv \"$cachedir/$cdir/$md5.krn\"";
 	my $data = `$command`;
-	print "Content-Type: text/html;charset=UTF-8\n";
-	print "Content-Disposition: inline; filename=\"$OPTIONS{'id'}-lyrics.html\"\n";
-	print "\n";
+	print "Content-Type: text/html;charset=UTF-8$newline";
+	print "Content-Disposition: inline; filename=\"$OPTIONS{'id'}-lyrics.html\"$newline";
+	print "$newline";
 	print $data;
 	exit(0);
 }
@@ -427,13 +430,12 @@ sub sendInfoContent {
 	my $ext = "aton";
 	$ext = "json" if $format =~ /json/i;
 
-	print "Content-Type: $mime; charset=utf-8\n";
-	print "Content-Disposition: inline; filename=\"$OPTIONS{'id'}-info.$ext\"\n";
-	print "\n";
-	print "$debug  \n\n", $output;
+	print "Content-Type: $mime; charset=utf-8$newline";
+	print "Content-Disposition: inline; filename=\"$OPTIONS{'id'}-info.$ext\"$newline";
+	print "$newline";
+	print $output;
 	exit(0);
 }
-
 
 ##
 ## End of dynamic content delivery functions.
@@ -553,8 +555,8 @@ sub getMd5 {
 
 sub errorMessage {
 	my ($message) = @_;
-	print "Content-Type: text/html;charset=UTF-8\n";
-	print "\n";
+	print "Content-Type: text/html;charset=UTF-8$newline";
+	print "$newline";
 	print <<"EOT";
 <html>
 <head>
@@ -579,8 +581,8 @@ EOT
 sub sendTestPage {
 	my ($id, $format) = @_;
 
-	print "Content-Type: text/html;charset=UTF-8\n";
-	print "\n";
+	print "Content-Type: text/html;charset=UTF-8$newline";
+	print "$newline";
 	print <<"EOT";
 <html>
 <head>
