@@ -113,8 +113,28 @@ purge:
 ## erase-purge -- Delete purged files.
 ##
 
+erase-purged: erase-purge
 erase-purge:
 	rm -rf purged/*
+
+
+
+##############################
+##
+## clean-index: Remove old cache index.
+##
+
+clean-index:
+	rm -f cache-index-old.hmd
+
+
+
+##############################
+##
+## clean --
+##
+
+clean: clean-index erase-purge
 
 
 
@@ -127,6 +147,7 @@ super-clean: erase-cache
 make ec: erase-cache
 erase-cache:
 	rm -f ?
+
 
 
 ##############################
