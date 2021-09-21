@@ -249,6 +249,7 @@ sub sendThemaIndex {
 ## Static content delivery functions:
 ##
 
+
 ##############################
 ##
 ## sendHumdrumContent -- (Static content) Send Humdrum file for ID.
@@ -273,12 +274,14 @@ sub sendHumdrumContent {
 	if ($compressQ) {
 		my $data = `cat $filelist | gzip`;
 		print "Content-Type: text/x-humdrum;charset=UTF-8\n";
+		print "Content-Disposition: inline; filename=\"$OPTIONS{'id'}.txt\"\n";
 		print "Content-Encoding: gzip\n";
 		print "\n";
 		print $data;
 	} else {
-		my $data = `cat $filelist | gzip`;
+		my $data = `cat $filelist`;
 		print "Content-Type: text/x-humdrum;charset=UTF-8\n";
+		print "Content-Disposition: inline; filename=\"$OPTIONS{'id'}.txt\"\n";
 		print "\n";
 		print $data;
 	}
