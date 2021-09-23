@@ -1,7 +1,7 @@
 ##
 ## Programmer:    Craig Stuart Sapp <craig@ccrma.stanford.edu>
 ## Creation Date: Sun Sep 12 06:50:13 PDT 2021
-## Last Modified: Sat 18 Sep 2021 06:44:11 PM PDT
+## Last Modified: Wed 22 Sep 2021 09:55:10 PM PDT
 ## Syntax:        GNU Makefile
 ## Filename:      cache/Makefile
 ## vim:           ts=3:nowrap
@@ -34,6 +34,8 @@ all:
 	@echo "make erase-purge == Remove files from purged directory."
 	@echo "make erase-cache == Remove all files from cache."
 	@echo
+	@echo "See the Makefile's contents for other possible targets"
+	@echo
 
 
 
@@ -41,10 +43,26 @@ all:
 ##
 ## update -- Install new files, create derivative files and then
 ##     publish the new files when everything is ready.  And finally
-##     purge old files from cache.
+##     purge old files from cache and generate music search indexes.
+##
+## Steps to update the cache are:
+##
+## 0. First you should place updated files in the ../kern directory (see
+##                 ../Makefile for this process).
+## 1. cache-index: Creates cache-index-new.hmd based on files in ../kern .
+## 2. copy-kern:   Copy ../kern files into cache directories (based on the
+##                 MD5 checksum of the files).
+## 3. derivatives: Calculate data conversions and analyses of the original
+##                 Humdrum file.
+## 4. indexes-new: Create browsing indexes for website(s).
+## 5. publish:     Move cache-index-new.hmd to cache-index.hmd
+## 6. purge:       Move unused cached files to the purged directory.  You can
+##                 Examine them to see if the should be purged, and if so,
+##                 the command "make erase-purged" will delete them.
+## 7. cache-thema: Create repertory-wide music search indexes.
 ##
 
-update: cache-index copy-kern derivatives indexes-new publish purge
+update: cache-index copy-kern derivatives indexes-new publish purge cache-thema
 
 
 
@@ -237,7 +255,7 @@ erase-mei:
 ##
 
 generate-musicxml:
-	bin/makeDerivatives -d musicxml
+	bin/makeDerivatives -v -d musicxml
 
 regenerate-musicxml:
 	bin/makeDerivatives -f -d musicxml
@@ -256,14 +274,10 @@ erase-musicxml:
 ##
 
 generate-thema:
-	bin/makeDerivatives -d thema
-	cat */*/*-pitch.thema > indexes/thema-pitch.txt
-	gzip indexes/thema-pitch.txt
+	bin/makeDerivatives -v -d thema
 
 regenerate-thema:
 	bin/makeDerivatives -f -d thema
-	cat */*/*-pitch.thema > indexes/thema-pitch.txt
-	gzip indexes/thema-pitch.txt
 
 missing-thema:
 	@bin/listMissingDerivatives -d thema -mcf
@@ -271,6 +285,19 @@ missing-thema:
 erase-thema:
 	bin/eraseDerivatives -d thema
 	rm indexes/thema-pitch.txt.gz
+
+#
+# Do "make cache-thema" after purging old entries from the cache:
+# (do not do at derivative generation step that individual
+# work thema files are created).
+#
+
+thema-cache: cache-thema
+cache-thema:
+	-rm -f indexes/thema-pitch.txt.gz
+	cat ?/*/*-pitch.thema > indexes/thema-pitch.txt
+	gzip indexes/thema-pitch.txt
+
 
 
 ###########################################################################
@@ -280,7 +307,7 @@ erase-thema:
 
 ##############################
 ##
-## Download metadata from the --
+## Download metadata from the POPC-2 Google spreadsheet --
 ##
 
 generate-spreadsheet-new: regenerate-spreadsheet-new
