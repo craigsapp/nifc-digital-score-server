@@ -210,7 +210,7 @@ make
 make install
 ```
 
-Note that cmake is required (and must first be installed if not available).
+Note that `cmake` is required (and must first be installed if not available).
 
 Verify that verovio was installed by running the command:
 
@@ -219,6 +219,25 @@ which verovio
 ```
 
 which should reply `/usr/local/bin/verovio`.
+
+
+#### aton2json ####
+
+The aton2json program can be installed with these commands:
+
+```bash
+npm install -g posix-argv-parser
+npm install -g aton2json
+wget https://raw.githubusercontent.com/craigsapp/ATON/master/example/cli/aton2json -O /usr/local/bin/aton2json
+```
+
+Verify that `aton2json` was installed by running the command:
+
+```bash
+which aton2json
+```
+
+which should reply `/usr/local/bin/aton2json`
 
 
 ## SELinux notes ##
@@ -235,5 +254,15 @@ Then give permissions to run a particular program:
 ```bash
 chcon system_u:object_r:httpd_exec_t:s0 program-file
 ```
+
+For data access logging, the log directory should be given SELinux permissions:
+
+```bash
+chcon -R -t httpd_sys_content_t logs
+```
+
+And the web server should be made owner of the log directory.
+
+
 
 

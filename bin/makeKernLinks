@@ -2,8 +2,8 @@
 #
 # Programmer:    Craig Stuart Sapp <craig.stanford.edu>
 # Creation Date: Sun Aug 15 10:06:47 CEST 2021
-# Last Modified: Sun Aug 15 10:23:16 CEST 2021
-# Filename:      nifc-humdrum-data/bin/makeKernLinks
+# Last Modified: Thu 23 Sep 2021 08:39:23 PM PDT
+# Filename:      bin/makeKernLinks
 # Syntax:        perl 5
 # vim:           ts=3
 #
@@ -20,11 +20,13 @@ use File::Spec;
 use Cwd;
 
 my $verboseQ = 0;
-my $targetdir;   # Directory into which the symbolic links will be created.
+my $recursiveQ = 0;  # Do a recursive search for *.krn files in a directory.
+my $targetdir;       # Directory into which the symbolic links will be created.
 
 Getopt::Long::Configure("bundling");
 GetOptions (
    't|target=s' => \$targetdir,
+   'r|recursive=s' => \$recursiveQ,
    'v|verbose' => \$verboseQ
 );
 
@@ -85,8 +87,10 @@ sub linkKernFilesInDir {
 		print STDERR "Linking $srcdir/*.krn files into $targetdir\n";
 	}
 	my @files = glob("$srcdir/*.krn");
-	if ((@files == 0) && (-d "$srcdir/kern")) {
-		@files = glob("$srcdir/kern/*.krn");
+	if (!$recursiveQ) {
+		if ((@files == 0) && (-d "$srcdir/kern")) {
+			@files = glob("$srcdir/kern/*.krn");
+		}
 	}
 	foreach my $file (@files) {
 		my $base = $file;
@@ -106,6 +110,31 @@ sub linkKernFilesInDir {
 		symlink("$source", "$destination") 
 		 	or die "Cannot link $file to $targetdir/$base.krn";
 	}
+
+	return if !$recursiveQ;
+
+	my @dirs = getSubdirectories($srcdir);
+	foreach my $dir (@dirs) {
+		linkKernFilesInDir($targetdir, "$srcdir/$dir");
+	}
+}
+
+
+
+##############################
+##
+## getSubdirectories --
+##
+
+sub getSubdirectories {
+	my ($basedir) = @_;
+	my @output;
+	opendir (BASEDIR, $basedir) or return @output;
+	while (my $file = readdir(BASEDIR)) {
+		next if $file =~ /^\./;
+		$output[@output] = $file if -d "$basedir/$file";
+	}
+	return sort @output;
 }
 
 

@@ -1,0 +1,129 @@
+#!/usr/bin/perl
+#
+# Programmer:    Craig Stuart Sapp <craig.stanford.edu>
+# Creation Date: Thu 23 Sep 2021 06:44:02 PM PDT
+# Last Modified: Thu 23 Sep 2021 06:44:05 PM PDT
+# Filename:      bin/checkPrograms
+# Syntax:        perl 5
+# vim:           ts=3
+#
+# Description:   Check that programes necessary for use in preparing the cache
+#                are available in the terminal.
+#
+
+use strict;
+use Getopt::Long;
+
+my $verboseQ = 0;
+
+Getopt::Long::Configure("bundling");
+GetOptions (
+   'v|verbose' => \$verboseQ
+);
+
+
+
+##############################
+##
+## aton2json -- Needed for various cache indexes.
+##
+
+my $aton2json = `which aton2json`;
+chomp $aton2json;
+if ($aton2json =~ /^\s*$/) {
+	print "aton2json\tMISSING\n";
+} elsif ($verboseQ) {
+	print "aton2json\tAVAILABLE\n";
+}
+
+
+
+##############################
+##
+## gzip -- Needed for GZIP compression of MEI and MusicXML files in cache.
+##
+
+my $gzip = `which gzip`;
+chomp $gzip;
+if ($gzip =~ /^\s*$/) {
+	print "gzip\t\tMISSING\n";
+} elsif ($verboseQ) {
+	print "gzip\t\tAVAILABLE\n";
+}
+
+
+
+##############################
+##
+## perl -- Needed for PERL scripts.
+##
+
+my $perl = "/usr/bin/perl";
+if (!-r $perl) {
+	print "perl\t\tMISSING\n";
+} elsif ($verboseQ) {
+	print "perl\t\tAVAILABLE\n";
+}
+
+
+
+##############################
+##
+## tindex -- Needed for creating music search indexes (from Humdrum Extras).
+##
+
+my $tindex = `which tindex`;
+if ($tindex =~ /^\s*$/) {
+	print "tindex\t\tMISSING\n";
+} elsif ($verboseQ) {
+	print "tindex\t\tAVAILABLE\n";
+}
+
+
+
+##############################
+##
+## verovio -- Needed for Humdrum-to-MEI conversion and Humdrum-to-SVG conversions.
+##
+
+my $verovio = `which verovio`;
+chomp $verovio;
+if ($verovio =~ /^\s*$/) {
+	print "verovio\t\tMISSING\n";
+} elsif ($verboseQ) {
+	print "verovio\t\tAVAILABLE\n";
+}
+
+
+
+##############################
+##
+## wget -- Needed for downloading Google spreadsheet information.
+##
+
+my $wget = `which wget`;
+chomp $wget;
+if ($wget =~ /^\s*$/) {
+	print "wget\t\tMISSING\n";
+} elsif ($verboseQ) {
+	print "wget\t\tAVAILABLE\n";
+}
+
+
+
+##############################
+##
+## zcat -- Needed for uncompressing MEI and MusicXML files when
+##     serving file to browsers that do not understant gzip.
+##
+
+my $zcat = `which zcat`;
+chomp $zcat;
+if ($zcat =~ /^\s*$/) {
+	print "zcat\t\tMISSING\n";
+} elsif ($verboseQ) {
+	print "zcat\t\tAVAILABLE\n";
+}
+
+
+

@@ -1,37 +1,41 @@
 ##
 ## Programmer:    Craig Stuart Sapp <craig@ccrma.stanford.edu>
 ## Creation Date: Sun Aug 15 11:16:54 CEST 2021
-## Last Modified: Sun 19 Sep 2021 09:01:44 AM PDT
+## Last Modified: Thu 23 Sep 2021 07:49:49 PM PDT
 ## Syntax:        GNU Makefile
 ## Filename:      Makefile
 ## vim:           ts=3
 ##
 ## Description:   Makefile to run tasks for nifc-humdrum-data repository.
 ##
-## Usage:         Type "make" to see list of common make targets.  To update everything,
-##                type "make update" if the server has already been set up.
+## Usage:         Type "make" to see list of common make targets.  To update
+##                everything type "make update" if the server has already
+##                been set up.
 ##
-
 
 .PHONY: kern
 
+##############################
+##
+## Configuration variables:
+##
 
 # KERNREPOS: This is a list of all of the directories where Humdrum files
 # are located that should be incorporated into this data server for the
 # files.
-KERNREPOS =  ../humdrum-chopin-first-editions  \
-	../humdrum-polish-scores/pl-cz              \
-	../humdrum-polish-scores/pl-kk              \
-	../humdrum-polish-scores/pl-kozmzk          \
-	../humdrum-polish-scores/pl-sa              \
-	../humdrum-polish-scores/pl-stab            \
-	../humdrum-polish-scores/pl-wn              \
-	../humdrum-polish-scores/pl-wtm
-
+KERNREPOS =  ../humdrum-chopin-first-editions ../humdrum-polish-scores
 
 # TARGETDIR: The directory into which symbolic links to Humdrum files in the
 # KERNREPOS directory list are located.
 TARGETDIR = kern
+
+# Log directory user/group for write permssions:
+WEBSERVERUSER = apache
+WEBSERVERGROUP = apache
+
+# Location where activity logs are kept:
+LOGDIR = logs
+
 
 
 ##############################
@@ -42,9 +46,13 @@ TARGETDIR = kern
 all:
 	@echo
 	@echo "Makefile targets:"
-	@echo "   make kern        -- Create symbolic links to digital scores."
-	@echo "   make count       -- Count the number of linked kern files."
-	@echo "   make update      -- Run \"make kern\" then update cache."
+	@echo "   make kern           -- Create symbolic links to digital scores."
+	@echo "   make update         -- Run \"make kern\" then update cache."
+	@echo "   make count          -- Count the number of linked kern files."
+	@echo
+	@echo " Initializtion targets:";
+	@echo "   make initialize     -- Initial setup before using system."
+	@echo "   make check-programs -- Check if necessary programs are installed."
 	@echo
 
 
@@ -53,11 +61,58 @@ all:
 ##
 ## update -- Prepare kern directory, then update cache files.
 ##    The files in the ../humdrum-polish-scores repository should
-##    be up to date before running this command. (and humdrum-chopin-first-editions)
+##    be up to date before running this command
+##    (and humdrum-chopin-first-editions).
 ##
 
 update: kern
 	(cd cache; make update)
+
+
+
+##############################
+##
+## check-programs: Check to see that all programs necessary to
+##    generate derivative files in the cache are available on
+##    the command-line.  This is good to run when installing,
+##    but also good to check after the operating system has
+##    been upgraded.
+##
+
+cp: check-programs
+check-programs:
+	bin/checkPrograms -v
+
+
+
+##############################
+##
+## initialize -- First-time setup commands.
+##
+
+SETSEBOOL := $(shell which setsebool 2> /dev/null)
+CHCON := $(shell which chcon 2> /dev/null)
+
+initialize:
+	mkdir -p $(LOGDIR)
+	chown -R $(WEBSERVERUSER).$(WEBSERVERGROUP) $(LOGDIR)
+
+# SELinux setup:
+
+# Allow webserver to execute scripts:
+ifdef SETSEBOOL
+	setsebool -P httpd_execmem 1
+endif
+
+# Allow the webserver to write to the logs directory:
+ifdef CHCON
+	chcon -R -t httpd_sys_content_t $(LOGDIR)
+endif
+
+# Allow the following scripts to be run by the webserver:
+ifdef CHCON
+	chcon system_u:object_r:httpd_exec_t:s0 bin/lyrics
+endif
 
 
 
@@ -69,7 +124,7 @@ update: kern
 ##
 
 kern:
-	bin/makeKernLinks -t $(TARGETDIR) $(KERNREPOS)
+	bin/makeKernLinks -r -t $(TARGETDIR) $(KERNREPOS)
 	@echo "kern directory has $$(ls kern/*.krn | wc -l | sed 's/^ +//') files"
 	# Check for bad character encodings:
 	-file kern/*.krn | grep -v UTF-8  | grep -v ASCII
@@ -83,7 +138,7 @@ kern:
 
 kv: kern-verbose
 kern-verbose:
-	bin/makeKernLinks -v $(KERNREPOS)
+	bin/makeKernLinks -r -v -t $(TARGETDIR) $(KERNREPOS)
 	@echo "kern directory has $$(ls kern/*.krn | wc -l | sed 's/^ +//') files"
 	# Check for bad character encodings:
 	-file kern/*.krn | grep -v UTF-8  | grep -v ASCII
