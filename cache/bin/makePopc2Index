@@ -89,8 +89,8 @@ sub prepareEntry {
 	$output .= "\@cenid:\t\t$cenid\n";
 	$output .= "\@COM:\t\t$composer\n";
 	$output .= "\@title:\t\t$title\n";
-	$output .= "\@siglum\t\t$siglum\n";
-	$output .= "\@AGN\t\t$AGN\n";
+	$output .= "\@siglum:\t$siglum\n";
+	$output .= "\@AGN:\t\t$AGN\n";
 	$output .= "\@\@END:\t\tENTRY\n";
 	$output .= "\n";
 
