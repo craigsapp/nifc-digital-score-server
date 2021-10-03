@@ -2,7 +2,7 @@
 #
 # Programmer:    Craig Stuart Sapp <craig.stanford.edu>
 # Creation Date: Sun 19 Sep 2021 05:40:13 AM PDT
-# Last Modified: Sun 19 Sep 2021 05:40:15 AM PDT
+# Last Modified: Sun 03 Oct 2021 01:11:18 PM PDT
 # Filename:      cache/bin/makePopc2BrowseIndex
 # Syntax:        perl 5
 # vim:           ts=3
@@ -66,6 +66,8 @@ sub prepareEntry {
 	my $GTL = $references{"GTL"};
 	my $PTL = $references{"PTL"};
 	my $OTL = $references{"OTL"};
+	my $AGN = $references{"AGN"};
+	my $siglum = $references{"SMS-siglum"};
 	if (($GTL !~ /^\s*$/) && ($PTL !~ /^\s*$/) && ($GTL !~ /^\s*$/)) {
 		$title = "$GTL &mdash; $PTL &mdash; $OTL";
 	} elsif (($GTL !~ /^\s*$/) && ($PTL !~ /^\s*$/)) {
@@ -87,6 +89,8 @@ sub prepareEntry {
 	$output .= "\@cenid:\t\t$cenid\n";
 	$output .= "\@COM:\t\t$composer\n";
 	$output .= "\@title:\t\t$title\n";
+	$output .= "\@siglum\t\t$siglum\n";
+	$output .= "\@AGN\t\t$AGN\n";
 	$output .= "\@\@END:\t\tENTRY\n";
 	$output .= "\n";
 

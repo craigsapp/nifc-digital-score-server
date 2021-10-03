@@ -2,7 +2,7 @@
 #
 # Programmer:    Craig Stuart Sapp <craig.stanford.edu>
 # Creation Date: Sun Sep 12 06:28:28 PDT 2021
-# Last Modified: Sun Sep 12 06:28:31 PDT 2021
+# Last Modified: Sun 03 Oct 2021 01:11:45 PM PDT
 # Filename:      cache/bin/makeIndex
 # Syntax:        perl 5
 #
@@ -91,7 +91,7 @@ sub getCenturyId {
 	open (FILE, $filename) or die "Cannot read $filename\n";
 	while (my $line = <FILE>) {
 		chomp $line;
-		if ($line =~ /^!!!id:\s*([012]\dxx:\d+)\s*$/) {
+		if ($line =~ /^!!!c?e?n?id:\s*([012]\dxx:\d+)\s*$/) {
 			$output = $1;
 			last;
 		}
