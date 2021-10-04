@@ -67,7 +67,12 @@ sub prepareEntry {
 	my $PTL = $references{"PTL"};
 	my $OTL = $references{"OTL"};
 	my $AGN = $references{"AGN"};
+	my $CNT = $references{"CNT"};
 	my $siglum = $references{"SMS-siglum"};
+
+	$CNT = "undetermined" if $CNT =~ /^\s*$/;
+	$AGN = "uncategorized" if $AGN =~ /^\s*$/;
+
 	if (($GTL !~ /^\s*$/) && ($PTL !~ /^\s*$/) && ($GTL !~ /^\s*$/)) {
 		$title = "$GTL &mdash; $PTL &mdash; $OTL";
 	} elsif (($GTL !~ /^\s*$/) && ($PTL !~ /^\s*$/)) {
@@ -87,9 +92,10 @@ sub prepareEntry {
 	my $output = "";
 	$output .= "\@\@BEGIN:\tENTRY\n";
 	$output .= "\@cenid:\t\t$cenid\n";
-	$output .= "\@COM:\t\t$composer\n";
-	$output .= "\@title:\t\t$title\n";
 	$output .= "\@siglum:\t$siglum\n";
+	$output .= "\@COM:\t\t$composer\n";
+	$output .= "\@CNT:\t\t$CNT\n";
+	$output .= "\@title:\t\t$title\n";
 	$output .= "\@AGN:\t\t$AGN\n";
 	$output .= "\@\@END:\t\tENTRY\n";
 	$output .= "\n";
