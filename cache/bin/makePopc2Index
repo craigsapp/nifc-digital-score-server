@@ -69,6 +69,7 @@ sub prepareEntry {
 	my $AGN = $references{"AGN"};
 	my $CNT = $references{"CNT"};
 	my $siglum = $references{"SMS-siglum"};
+	my $shelfmark = $references{"SMS-shelfmark"};
 
 	$CNT = "undetermined" if $CNT =~ /^\s*$/;
 	$AGN = "uncategorized" if $AGN =~ /^\s*$/;
@@ -93,6 +94,7 @@ sub prepareEntry {
 	$output .= "\@\@BEGIN:\tENTRY\n";
 	$output .= "\@cenid:\t\t$cenid\n";
 	$output .= "\@siglum:\t$siglum\n";
+	$output .= "\@shelfmark:\t$shelfmark\n";
 	$output .= "\@COM:\t\t$composer\n";
 	$output .= "\@CNT:\t\t$CNT\n";
 	$output .= "\@title:\t\t$title\n";
