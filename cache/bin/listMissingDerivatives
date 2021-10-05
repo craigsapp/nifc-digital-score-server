@@ -47,7 +47,7 @@ my %Index = getIndex($indexfile);
 #	print "$key\t$Index{$key}\n";
 #}
 
-$derivatives = "mei,musicxml.thema" if $derivatives =~ /^\s*$/;
+$derivatives = "mei,musicxml,thema,wordlist" if $derivatives =~ /^\s*$/;
 $derivatives =~ s/^[^0-9a-zA-Z_-]+//;
 $derivatives =~ s/[^0-9a-zA-Z_-]+$//;
 my @derivativeList = split (/[^0-9a-zA-Z_-]+/, $derivatives);
@@ -149,7 +149,7 @@ sub listMissingDerivativesForEntry {
 				print "\n";
 			}
 
-		} elsif ($derivative eq "themax") {
+		} elsif ($derivative eq "thema") {
 			if (!-r "$basedir/$md5/$md5-pitch.thema") {
 				if (@derivativeList > 1) {
 					print "$derivative\t";
@@ -166,9 +166,30 @@ sub listMissingDerivativesForEntry {
 				print "\n";
 			}
 
+		} elsif ($derivative eq "wordlist") {
+			# Should also check to see if there is **text in digital score.
+			# since it is expected to be no file if there is no **text.
+			if (!-r "$basedir/$md5/$md5-wordlist.txt") {
+				if (@derivativeList > 1) {
+					print "$derivative\t";
+				}
+				print "$Index{$md5}";
+				if ($fileQ) {
+					my $filename = getFilename($md5);
+					if ($Index{$md5} eq "") {
+						print $filename;
+					} else {
+						print "\t$filename";
+					}
+				}
+				print "\n";
+			}
+
 		}
+
 	}
 }
+
 
 
 ##############################

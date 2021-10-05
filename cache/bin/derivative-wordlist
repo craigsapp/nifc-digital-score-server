@@ -1,13 +1,13 @@
 #!/usr/bin/perl
 #
 # Programmer:    Craig Stuart Sapp <craig.stanford.edu>
-# Creation Date: Mon 20 Sep 2021 10:09:01 AM PDT
-# Last Modified: Mon 20 Sep 2021 10:58:44 AM PDT
-# Filename:      cache/bin/derivative-thema
+# Creation Date: Mon 04 Oct 2021 07:51:12 PM PDT
+# Last Modified: Mon 04 Oct 2021 07:54:29 PM PDT
+# Filename:      cache/bin/derivative-wordlist
 # Syntax:        perl 5
 # vim:           ts=3
 #
-# Description:   Create thema search indexes.
+# Description:   Create wordlist
 #
 # Options:
 #     -f   == Force recalculation of derivative files (overwrite).
@@ -16,8 +16,8 @@
 use strict;
 use Getopt::Long;
 
-my $tag = "pitch";
-my $ext = "thema";
+my $tag = "wordlist";
+my $ext = "txt";
 
 my $forceQ = 0;
 Getopt::Long::Configure("bundling");
@@ -35,19 +35,20 @@ my $inputfile = "$md5id.krn";
 
 die "ERROR: Cannot find input file $inputfile\n" if !-r $inputfile;
 
+my $exinterp = `grep "^\\*\\*" $md5id.krn`;
+if ($exinterp !~ /text/) {
+	exit(0);
+}
+
 if (!$forceQ) {
 	exit 0 if -r "$md5id-$tag.$ext";
 } elsif (-r "$md5id-$tag.$ext") {
 	unlink("$md5id-$tag.$ext");
 }
 
+my $command = "../../bin/makeLyricsWordList";
+die "Cannot find command $command" if !-r $command;
 
-my $tindex = `which tindex`;
-chomp $tindex;
-die "Error: Cannot locate tindex command\n" if $tindex =~ /^\s*$/;
-
-
-`$tindex $inputfile -p > $md5id-$tag.$ext`;
-
+`$command -n $inputfile  > $md5id-$tag.$ext`;
 
 

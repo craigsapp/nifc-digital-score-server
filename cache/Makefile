@@ -175,8 +175,8 @@ erase-cache:
 ##     is related to which index file is read for preparing the indexes.
 ##
 
-indexes-new: popc2-browse-index-new
-indexes: popc2-browse-index
+indexes-new: popc2-browse-index-new lyrics-index-new
+indexes: popc2-browse-index lyrics-index
 
 popc2-browse-index-new:
 	@mkdir -p indexes
@@ -195,6 +195,20 @@ popc2-browse-index:
 	(cd indexes; aton2json popc2-browse-index.aton | sed 's/^{"ENTRY"://; s/}[]]}$$/}]/' > popc2-browse-index.json)
 	(cd indexes; gzip popc2-browse-index.json)
 	(cd indexes; gzip popc2-browse-index.aton)
+
+
+lyrics-index-new:
+	@mkdir -p indexes
+	-rm -f indexes/popc2-lyrics-index.txt.gz
+	bin/makeLyricsIndex -i cache-index-new.hmd > indexes/popc2-lyrics-index.txt
+	(cd indexes; gzip popc2-lyrics-index.txt)
+	
+
+lyrics-index:
+	@mkdir -p indexes
+	-rm -f indexes/popc2-lyrics-index.txt.gz
+	bin/makeLyricsIndex -i cache-index.hmd > indexes/popc2-lyrics-index.txt
+	(cd indexes; gzip popc2-lyrics-index.txt)
 
 
 
@@ -217,6 +231,7 @@ other-derivatives: regenerate-spreadsheet-new
 ##   mei:       Convert Humdrum files to MEI files.
 ##   musicxml:  Convert Humdrum files to MusicXML files.
 ##   thema:     Generate thema search indexes.
+##   wordlist:  Generate word list from lyrics in file.
 ##
 
 generate-all:
@@ -228,7 +243,7 @@ regenerate-all:
 missing-all:
 	@bin/listMissingDerivatives -mcf
 
-erase-all: erase-mei erase-musicxml erase-thema
+erase-all: erase-mei erase-musicxml erase-thema erase-wordlist
 
 
 ##############################
@@ -285,6 +300,26 @@ missing-thema:
 erase-thema:
 	bin/eraseDerivatives -d thema
 	rm indexes/thema-pitch.txt.gz
+
+
+
+##############################
+##
+## Lyrics word list
+##
+
+generate-wordlist:
+	bin/makeDerivatives -v -d wordlist
+
+regenerate-wordlist:
+	bin/makeDerivatives -f -d wordlist
+
+missing-wordlist:
+	@bin/listMissingDerivatives -d wordlist -mcf
+
+erase-wordlist:
+	bin/eraseDerivatives -d wordlist
+
 
 #
 # Do "make cache-thema" after purging old entries from the cache:

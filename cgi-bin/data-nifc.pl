@@ -14,7 +14,8 @@
 #       popc2-browse-index.json  == POPC-2 browse search index in JSON format.
 #       popc2-browse-index.aton  == POPC-2 browse search index in ATON format.
 #    Search indexes:
-#    		pitch.thema == Melodic pitch search index (all works).
+#       popc2-lyrics-index.txt   == POPC-2 lyrics search index in TXT format.
+#       pitch.thema == Melodic pitch search index (all works).
 #    Quasi-score ids:
 #       random    ==  Get random score from cache.
 #    Static cached formats:
@@ -193,7 +194,10 @@ sub sendIndex {
 	$format =~ s/[^a-zA-Z0-9_-]//g;
 	my $file = "$cachedir/indexes/$base.$format.gz";
 	if (!-r $file) {
-		errorMessage("Cannot find index: $base.$format");
+		$file = "$cachedir/indexes/$base.$format";
+		if (!-r $file) {
+			errorMessage("Cannot find index: $base.$format");
+		}
 	}
 	my $charset = ";charset=UTF-8";
 	my $mime = "text/plain";
