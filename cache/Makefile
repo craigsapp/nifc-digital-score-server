@@ -202,7 +202,6 @@ lyrics-index-new:
 	-rm -f indexes/popc2-lyrics-index.txt.gz
 	bin/makeLyricsIndex -i cache-index-new.hmd > indexes/popc2-lyrics-index.txt
 	(cd indexes; gzip popc2-lyrics-index.txt)
-	
 
 lyrics-index:
 	@mkdir -p indexes
@@ -210,6 +209,14 @@ lyrics-index:
 	bin/makeLyricsIndex -i cache-index.hmd > indexes/popc2-lyrics-index.txt
 	(cd indexes; gzip popc2-lyrics-index.txt)
 
+
+composer-index:
+	-rm -f indexes/popc2-composer-index.aton.gz
+	-rm -f indexes/popc2-composer-index.json.gz
+	wget "https://script.google.com/macros/s/AKfycby5J8xq1V8bNpA567Kw3yiQ5EcfS3EvMDRZTrogBxfrL5Q93fSJhACZ42FuhuRoESkZSQ/exec?format=aton" -O indexes/popc2-composer-index.aton
+	wget "https://script.google.com/macros/s/AKfycby5J8xq1V8bNpA567Kw3yiQ5EcfS3EvMDRZTrogBxfrL5Q93fSJhACZ42FuhuRoESkZSQ/exec?format=aton" -O indexes/popc2-composer-index.json
+	(cd indexes; gzip popc2-composer-index.aton)
+	(cd indexes; gzip popc2-composer-index.json)
 
 
 ##############################
