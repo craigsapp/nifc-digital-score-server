@@ -105,6 +105,7 @@ for (my $i=0; $i<@words; $i++) {
 	my $word = $words[$i];
 	$word =~ s/ſ/s/g;
 	$word =~ s/ʃ/s/g;
+	$word =~ s/ᴣ/z/g;
 	$word =~ s/ӡ/z/g;
 	$word =~ s/ʒ̇/ż/g;
 	$word =~ s/ʒ́/ź/g;
@@ -117,6 +118,14 @@ for (my $i=0; $i<@words; $i++) {
 	$word =~ s/\.$//;
 	$word =~ s/^\.//;
 	$word =~ s/,$//;
+	$word =~ s/\&#383;/s/g;  # Entity encoding of long s.
+	if (($word =~ /;$/) && ($word !~ /\&/)) {
+		# Remove semicolons, but only if not a potential entity encoding.
+		$word =~ s/;$//;
+	}
+
+	# Deal with square brackets and double square brackets.
+
 	$list{$word}++;
 }
 
