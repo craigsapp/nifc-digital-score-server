@@ -87,11 +87,11 @@ sub generateIndex {
 
 sub getCenturyId {
 	my ($filename) = @_;
-	my $output = "x";
+	my $output = "unknown";
 	open (FILE, $filename) or die "Cannot read $filename\n";
 	while (my $line = <FILE>) {
 		chomp $line;
-		if ($line =~ /^!!!c?e?n?id:\s*([012]\dxx:\d+)\s*$/) {
+		if ($line =~ /^!!!c?e?n?id:\s*([012]\dxx:\d+[^\s]*)\s*$/) {
 			$output = $1;
 			last;
 		}

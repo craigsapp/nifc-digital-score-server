@@ -175,8 +175,8 @@ erase-cache:
 ##     is related to which index file is read for preparing the indexes.
 ##
 
-indexes-new: popc2-browse-index-new lyrics-index-new
-indexes: popc2-browse-index lyrics-index
+indexes-new: popc2-browse-index-new lyrics-index-new composer-index
+indexes: popc2-browse-index lyrics-index composer-index
 
 popc2-browse-index-new:
 	@mkdir -p indexes
@@ -214,7 +214,7 @@ composer-index:
 	-rm -f indexes/popc2-composer-index.aton.gz
 	-rm -f indexes/popc2-composer-index.json.gz
 	wget "https://script.google.com/macros/s/AKfycby5J8xq1V8bNpA567Kw3yiQ5EcfS3EvMDRZTrogBxfrL5Q93fSJhACZ42FuhuRoESkZSQ/exec?format=aton" -O indexes/popc2-composer-index.aton
-	wget "https://script.google.com/macros/s/AKfycby5J8xq1V8bNpA567Kw3yiQ5EcfS3EvMDRZTrogBxfrL5Q93fSJhACZ42FuhuRoESkZSQ/exec?format=aton" -O indexes/popc2-composer-index.json
+	wget "https://script.google.com/macros/s/AKfycby5J8xq1V8bNpA567Kw3yiQ5EcfS3EvMDRZTrogBxfrL5Q93fSJhACZ42FuhuRoESkZSQ/exec?format=json" -O indexes/popc2-composer-index.json
 	(cd indexes; gzip popc2-composer-index.aton)
 	(cd indexes; gzip popc2-composer-index.json)
 
