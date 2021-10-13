@@ -175,42 +175,45 @@ erase-cache:
 ##     is related to which index file is read for preparing the indexes.
 ##
 
-indexes-new: popc2-browse-index-new lyrics-index-new composer-index
-indexes: popc2-browse-index lyrics-index composer-index
+indexes-new: popc2-score-index-new popc2-lyrics-index-new popc2-composer-index popc2-pitch-index
+indexes: popc2-score-index popc2-lyrics-index popc2-composer-index popc2-pitch-index
 
-popc2-browse-index-new:
+popc2-score-index-new:
 	@mkdir -p indexes
-	-rm -f indexes/popc2-browse-index.aton.gz
-	-rm -f indexes/popc2-browse-index.json.gz
-	bin/makePopc2Index -i cache-index-new.hmd > indexes/popc2-browse-index.aton
-	(cd indexes; aton2json popc2-browse-index.aton | sed 's/^{"ENTRY"://; s/}[]]}$$/}]/' > popc2-browse-index.json)
-	(cd indexes; gzip popc2-browse-index.json)
-	(cd indexes; gzip popc2-browse-index.aton)
+	-rm -f indexes/popc2-score-index.aton.gz
+	-rm -f indexes/popc2-score-index.json.gz
+	bin/makePopc2ScoreIndex -i cache-index-new.hmd > indexes/popc2-score-index.aton
+	(cd indexes; aton2json popc2-score-index.aton | sed 's/^{"ENTRY"://; s/}[]]}$$/}]/' > popc2-score-index.json)
+	(cd indexes; gzip popc2-score-index.json)
+	(cd indexes; gzip popc2-score-index.aton)
 
-popc2-browse-index:
+popc2-score-index:
 	@mkdir -p indexes
-	-rm -f indexes/popc2-browse-index.aton.gz
-	-rm -f indexes/popc2-browse-index.json.gz
-	bin/makePopc2Index -i cache-index.hmd > indexes/popc2-browse-index.aton
-	(cd indexes; aton2json popc2-browse-index.aton | sed 's/^{"ENTRY"://; s/}[]]}$$/}]/' > popc2-browse-index.json)
-	(cd indexes; gzip popc2-browse-index.json)
-	(cd indexes; gzip popc2-browse-index.aton)
+	-rm -f indexes/popc2-score-index.aton.gz
+	-rm -f indexes/popc2-score-index.json.gz
+	bin/makePopc2ScoreIndex -i cache-index.hmd > indexes/popc2-score-index.aton
+	(cd indexes; aton2json popc2-score-index.aton | sed 's/^{"ENTRY"://; s/}[]]}$$/}]/' > popc2-score-index.json)
+	(cd indexes; gzip popc2-score-index.json)
+	(cd indexes; gzip popc2-score-index.aton)
 
 
-lyrics-index-new:
+lyrics-index-new: popc2-lyrics-index-new
+popc2-lyrics-index-new:
 	@mkdir -p indexes
 	-rm -f indexes/popc2-lyrics-index.txt.gz
 	bin/makeLyricsIndex -i cache-index-new.hmd > indexes/popc2-lyrics-index.txt
 	(cd indexes; gzip popc2-lyrics-index.txt)
 
-lyrics-index:
+lyrics-index: popc2-lyrics-index
+popc2-lyrics-index:
 	@mkdir -p indexes
 	-rm -f indexes/popc2-lyrics-index.txt.gz
 	bin/makeLyricsIndex -i cache-index.hmd > indexes/popc2-lyrics-index.txt
 	(cd indexes; gzip popc2-lyrics-index.txt)
 
 
-composer-index:
+composer-index: popc2-composer-index
+popc2-composer-index:
 	-rm -f indexes/popc2-composer-index.aton.gz
 	-rm -f indexes/popc2-composer-index.json.gz
 	wget "https://script.google.com/macros/s/AKfycby5J8xq1V8bNpA567Kw3yiQ5EcfS3EvMDRZTrogBxfrL5Q93fSJhACZ42FuhuRoESkZSQ/exec?format=aton" -O indexes/popc2-composer-index.aton
@@ -306,7 +309,7 @@ missing-thema:
 
 erase-thema:
 	bin/eraseDerivatives -d thema
-	rm indexes/thema-pitch.txt.gz
+	rm -f indexes/popc2-pitch-index.txt.gz
 
 
 
@@ -334,11 +337,15 @@ erase-wordlist:
 # work thema files are created).
 #
 
-thema-cache: cache-thema
-cache-thema:
-	-rm -f indexes/thema-pitch.txt.gz
-	cat ?/*/*-pitch.thema > indexes/thema-pitch.txt
-	gzip indexes/thema-pitch.txt
+cache-thema: popc2-pitch-index
+popc2-thema-pitch-index: popc2-pitch-index
+popc2-cache-thema: popc2-pitch-index
+popc2-thema-cache: popc2-pitch-index
+thema-cache: popc2-pitch-index
+popc2-pitch-index:
+	-rm -f indexes/popc2-pitch-index.txt.gz
+	bin/makePopc2PitchIndex > indexes/popc2-pitch-index.txt
+	gzip indexes/popc2-pitch-index.txt
 
 
 

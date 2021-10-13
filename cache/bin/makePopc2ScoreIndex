@@ -3,7 +3,7 @@
 # Programmer:    Craig Stuart Sapp <craig.stanford.edu>
 # Creation Date: Sun 19 Sep 2021 05:40:13 AM PDT
 # Last Modified: Sun 03 Oct 2021 01:11:18 PM PDT
-# Filename:      cache/bin/makePopc2BrowseIndex
+# Filename:      cache/bin/makePopc2ScoreIndex
 # Syntax:        perl 5
 # vim:           ts=3
 #
@@ -11,9 +11,13 @@
 #
 
 use strict;
-
-use strict;
 use Getopt::Long;
+
+
+my $notecount = `which notecount`;
+chomp $notecount;
+die "Cannot find notecount tool\n" if $notecount =~ /^\s*$/;
+
 
 my $indexfile;
 my $kerndir;
@@ -33,7 +37,7 @@ my @keys = sort keys %index;
 
 my $output = "";
 foreach my $key (@keys) {
-	print STDERR "Processing $key ...\n";
+	print STDERR "Processing $key ... for score index\n";
 	$output .= prepareEntry($key, $index{$key});
 }
 print $output;
@@ -68,8 +72,12 @@ sub prepareEntry {
 	my $OTL = $references{"OTL"};
 	my $AGN = $references{"AGN"};
 	my $CNT = $references{"CNT"};
+	my $notecount = getNoteCount($kernfile);
 	my $siglum = $references{"SMS-siglum"};
 	my $shelfmark = $references{"SMS-shelfmark"};
+	my $fileid = $references{"!SEGMENT"};
+	$fileid =~ s/\.krn//;
+	$fileid =~ s/_.*//;
 
 	$CNT = "undetermined" if $CNT =~ /^\s*$/;
 	$AGN = "uncategorized" if $AGN =~ /^\s*$/;
@@ -93,16 +101,39 @@ sub prepareEntry {
 	my $output = "";
 	$output .= "\@\@BEGIN:\tENTRY\n";
 	$output .= "\@cenid:\t\t$cenid\n";
+	$output .= "\@fileid:\t$fileid\n";
 	$output .= "\@siglum:\t$siglum\n";
 	$output .= "\@shelfmark:\t$shelfmark\n";
 	$output .= "\@COM:\t\t$composer\n";
 	$output .= "\@CNT:\t\t$CNT\n";
 	$output .= "\@title:\t\t$title\n";
 	$output .= "\@AGN:\t\t$AGN\n";
+	$output .= "\@notecount\t$notecount\n";
 	$output .= "\@\@END:\t\tENTRY\n";
 	$output .= "\n";
 
 	return $output;
+}
+
+
+
+##############################
+##
+## getNoteCount -- Return the printed notecount for the given file.
+##
+
+sub getNoteCount {
+	my ($filename) = @_;
+	my $command = "$notecount -s $filename";
+	my @data = `$command`;
+	my $count = 0;
+	if (@data != 1) {
+		$count = 0;
+	} else {
+		my @fields = split(/\t+/, $data[0]);
+		$count = $fields[1];
+	}
+	return $count;
 }
 
 
