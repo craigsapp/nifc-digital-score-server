@@ -138,6 +138,10 @@ sub processParameters {
 		sendDataContent($format, @md5s);
 	} elsif ($format eq "musicxml") {
 		sendDataContent($format, @md5s);
+	} elsif ($format eq "mid") {
+		sendDataContent($format, @md5s);
+	} elsif ($format eq "midi") {
+		sendDataContent("midi", @md5s);
 	}
 
 	# dynamic formats
@@ -169,6 +173,10 @@ sub sendDataContent {
 		sendMeiContent($md5s[0]);
 	} elsif ($format eq "musicxml") {
 		sendMusicxmlContent($md5s[0]);
+	} elsif ($format eq "mid") {
+		sendMidiContent($md5s[0]);
+	} elsif ($format eq "midi") {
+		sendMidiContent($md5s[0]);
 	}
 
 	# Dynamically generated data formats:
@@ -362,6 +370,27 @@ sub sendMusicxmlContent {
 
 	my $data = `zcat "$cachedir/$cdir/$md5.$format.gz"`;
 	print "Content-Type: $mime$newline";
+	print "$newline";
+	print $data;
+	exit(0);
+}
+
+
+
+##############################
+##
+## sendMidiContent -- (Static content) Send MIDI conversion of Humdrum data.
+##
+
+sub sendMidiContent {
+	my ($md5) = @_;
+	my $cdir = getCacheSubdir($md5, $cacheDepth);
+	my $format = "mid";
+	my $mime = "audio/midi";
+
+	my $data = `cat "$cachedir/$cdir/$md5.$format"`;
+	print "Content-Type: $mime$newline";
+	print "Content-Disposition: attachment; filename=\"data.mid\"$newline";
 	print "$newline";
 	print $data;
 	exit(0);

@@ -108,7 +108,7 @@ sub prepareEntry {
 	$output .= "\@CNT:\t\t$CNT\n";
 	$output .= "\@title:\t\t$title\n";
 	$output .= "\@AGN:\t\t$AGN\n";
-	$output .= "\@notecount\t$notecount\n";
+	$output .= "\@notecount:\t$notecount\n";
 	$output .= "\@\@END:\t\tENTRY\n";
 	$output .= "\n";
 

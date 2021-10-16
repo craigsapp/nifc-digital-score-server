@@ -240,6 +240,7 @@ other-derivatives: regenerate-spreadsheet-new
 ## Generate all derivatives in the makeDerivatives system:
 ##   mei:       Convert Humdrum files to MEI files.
 ##   musicxml:  Convert Humdrum files to MusicXML files.
+##   midi:      Convert Humdrum files to MIDI files.
 ##   thema:     Generate thema search indexes.
 ##   wordlist:  Generate word list from lyrics in file.
 ##
@@ -253,7 +254,7 @@ regenerate-all:
 missing-all:
 	@bin/listMissingDerivatives -mcf
 
-erase-all: erase-mei erase-musicxml erase-thema erase-wordlist
+erase-all: erase-mei erase-musicxml erase-midi erase-thema erase-wordlist
 
 
 ##############################
@@ -290,6 +291,25 @@ missing-musicxml:
 
 erase-musicxml:
 	bin/eraseDerivatives -d musicxml
+
+
+
+##############################
+##
+## MIDI conversions.
+##
+
+generate-midi:
+	bin/makeDerivatives -v -d midi
+
+regenerate-midi:
+	bin/makeDerivatives -f -d midi
+
+missing-midi:
+	@bin/listMissingDerivatives -d midi -mcf
+
+erase-midi:
+	bin/eraseDerivatives -d midi
 
 
 
