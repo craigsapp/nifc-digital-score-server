@@ -68,6 +68,19 @@ update: cache-index copy-kern derivatives indexes-new publish purge cache-thema
 
 ##############################
 ##
+## install-scripts -- Install necessary scripts in /usr/local/bin.  Mostly
+##     this is just bin/humdrum2musicxml.  This should only need to be
+##     done once.
+##
+
+is: install-scripts
+install-scripts:
+	(cd bin && make install)
+
+
+
+##############################
+##
 ## cache-index -- Create new cache index.  Reads files from ../kern and
 ##      creates an index of various IDs for each file.  The index
 ##      is stored in a temporary file with a "-new" prefix so that
