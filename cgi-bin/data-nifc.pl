@@ -21,6 +21,7 @@
 #    Static cached formats:
 #       krn       == Humdrum data file.
 #       mei       == Conversion to MEI data.
+#       mid       == Conversion to MIDI data.
 #       musicxml  == Conversion to MusicXML data.
 #    Dynamically generated formats:
 #       lyrics    == Extract lyrics HTML page
@@ -654,6 +655,7 @@ EOT
 ##      https://humdrum.nifc.pl/random.musicxml
 ##      https://humdrum.nifc.pl/random?format=krn
 ##      https://humdrum.nifc.pl/random?format=mei
+##      https://humdrum.nifc.pl/random?format=mid
 ##      https://humdrum.nifc.pl/random?format=musicxml
 ##
 ##  Loading random file into VHV:
