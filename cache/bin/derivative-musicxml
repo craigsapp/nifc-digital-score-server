@@ -54,6 +54,18 @@ if ($output =~ /^\s*$/) {
 	die "$md5id: No data content.\n";
 }
 
+if ($output =~ /Input data is too large/) {
+	die "$md5id: Input data is too large for MusicXML conversion.\n";
+}
+
+if ($output =~ /Can't connect to/) {
+	die "$md5id: Can't connect to server for MusicXML conversion.\n";
+}
+
+if ($output =~ /read timeout at/) {
+	die "$md5id: Read timeout downloading MusicXML conversion.\n";
+}
+
 if ((length($output) < 10000) && ($output =~ /Gateway Timeout/)) {
 	die "$md5id: Gateway Timeout.\n";
 }
