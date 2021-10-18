@@ -49,7 +49,7 @@ my @keys = sort {
 } keys %index;
 
 my $output = "";
-$output .= "\@\@TYPE:notecount:Integer\n\n";
+# $output .= "\@\@TYPE:notecount:Integer\n\n";
 foreach my $key (@keys) {
 	print STDERR "Processing $key ... for score index\n";
 	$output .= prepareEntry($key, $index{$key});
@@ -89,6 +89,7 @@ sub prepareEntry {
 	my $notecount = getNoteCount($kernfile);
 	my $siglum = $references{"SMS-siglum"};
 	my $shelfmark = $references{"SMS-shelfmark"};
+	my $shelfwork = $references{"SMS-shelfwork"};
 	my $fileid = $references{"!SEGMENT"};
 	$fileid =~ s/\.krn//;
 	$fileid =~ s/_.*//;
@@ -118,6 +119,7 @@ sub prepareEntry {
 	$output .= "\@fileid:\t$fileid\n";
 	$output .= "\@siglum:\t$siglum\n";
 	$output .= "\@shelfmark:\t$shelfmark\n";
+	$output .= "\@shelfwork:\t$shelfwork\n";
 	$output .= "\@COM:\t\t$composer\n";
 	$output .= "\@CNT:\t\t$CNT\n";
 	$output .= "\@title:\t\t$title\n";
