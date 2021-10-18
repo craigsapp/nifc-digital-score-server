@@ -33,9 +33,23 @@ my $cacheDepth = 1;
 
 my %index = getIndexCentId($indexfile);
 
-my @keys = sort keys %index;
+# Sort by century ID:
+my @keys = sort {
+	$a =~ /^(1[\d])xx:(\d+)([a-z]*)/;
+	my $cenA = $1;
+	my $numA = $2;
+	my $letA = $3;
+	$b =~ /^(1[\d])xx:(\d+)([a-z]*)/;
+	my $cenB = $1;
+	my $numB = $2;
+	my $letB = $3;
+	if ($cenA != $cenB) { return $cenA <=> $cenB; }
+	if ($numA != $numB) { return $numA <=> $numB; }
+	return $letA cmp $letB;
+} keys %index;
 
 my $output = "";
+$output .= "\@\@TYPE:notecount:Integer\n\n";
 foreach my $key (@keys) {
 	print STDERR "Processing $key ... for score index\n";
 	$output .= prepareEntry($key, $index{$key});
