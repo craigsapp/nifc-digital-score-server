@@ -328,6 +328,25 @@ erase-midi:
 
 ##############################
 ##
+## Incipit conversions.
+##
+
+generate-incipit:
+	bin/makeDerivatives -v -d incipit
+
+regenerate-incipit:
+	bin/makeDerivatives -f -d incipit
+
+missing-incipit:
+	@bin/listMissingDerivatives -d incipit -mcf
+
+erase-incipit:
+	bin/eraseDerivatives -d incipit
+
+
+
+##############################
+##
 ## Thema search indexes.
 ##
 

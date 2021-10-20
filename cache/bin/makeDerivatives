@@ -25,6 +25,8 @@
 #                     derivatives.  Allowed derivative types:
 #                        mei      == Create MEI file (using verovio)
 #                        musicxml == Create MusicXML file (using converter21)
+#                        midi     == Create MIDI file (using hum2mid)
+#                        incipit  == Create SVG incipit file (using verovio)
 #                        thema    == Create Thema search indexes (uses tindex)
 #                        wordlist == Create A list of words from any lyrics in the score.
 #
@@ -32,6 +34,7 @@
 #     derivative-mei       == Creates MEI files.
 #     derivative-musicxml  == Creates MusicXML files.
 #     derivative-midi      == Creates MIDI files.
+#     derivative-incipit   == Creates musical incipit SVGs.
 #     derivative-thema     == Creates Thema music search index file(s).
 #     derivative-wordlist  == Creates a list of words from lyrcs in the input score.
 #
@@ -58,7 +61,7 @@ GetOptions (
 $groups = "0123456789abcdef" if $groups =~ /^\s*$/;
 $groups = reverse($groups) if $reverseQ;
 
-$derivatives = "mei,musicxml,midi,thema,wordlist" if $derivatives =~ /^\s*$/;
+$derivatives = "mei,musicxml,midi,incipit,thema,wordlist" if $derivatives =~ /^\s*$/;
 $derivatives =~ s/^[^0-9a-zA-Z_-]+//;
 $derivatives =~ s/[^0-9a-zA-Z_-]+$//;
 my @derivativeList = split (/[^0-9a-zA-Z_-]+/, $derivatives);

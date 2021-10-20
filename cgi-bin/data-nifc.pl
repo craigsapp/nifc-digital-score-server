@@ -23,6 +23,7 @@
 #       mei       == Conversion to MEI data.
 #       mid       == Conversion to MIDI data.
 #       musicxml  == Conversion to MusicXML data.
+#       incipit   == Conversion to SVG musical incipit.
 #    Dynamically generated formats:
 #       lyrics    == Extract lyrics HTML page
 #       info-aton == Basic metadata about the file in ATON format.
@@ -139,6 +140,8 @@ sub processParameters {
 		sendDataContent($format, @md5s);
 	} elsif ($format eq "musicxml") {
 		sendDataContent($format, @md5s);
+	} elsif ($format eq "incipit") {
+		sendDataContent($format, @md5s);
 	} elsif ($format eq "mid") {
 		sendDataContent($format, @md5s);
 	} elsif ($format eq "midi") {
@@ -174,6 +177,8 @@ sub sendDataContent {
 		sendMeiContent($md5s[0]);
 	} elsif ($format eq "musicxml") {
 		sendMusicxmlContent($md5s[0]);
+	} elsif ($format eq "incipit") {
+		sendMusicalIncipitContent($md5s[0]);
 	} elsif ($format eq "mid") {
 		sendMidiContent($md5s[0]);
 	} elsif ($format eq "midi") {
@@ -370,6 +375,43 @@ sub sendMusicxmlContent {
 	}
 
 	my $data = `zcat "$cachedir/$cdir/$md5.$format.gz"`;
+	print "Content-Type: $mime$newline";
+	print "$newline";
+	print $data;
+	exit(0);
+}
+
+
+
+##############################
+##
+## sendMusicalIncipitContent -- (Static content) Send SVG image of musical incipit.
+##
+
+sub sendMusicalIncipitContent {
+	my ($md5) = @_;
+	my $cdir = getCacheSubdir($md5, $cacheDepth);
+	my $format = "svg";
+	my $mime = "image/svg+xml";
+
+	# Incipit is stored in gzip-compressed file.  If the browser
+	# accepts gzip compressed data, send the compressed form of the data;
+	# otherwise, unzip and send as plain text.
+	my $compressQ = 0;
+	$compressQ = 1 if $ENV{'HTTP_ACCEPT_ENCODING'} =~ /\bgzip\b/;
+	if (!-r "$cachedir/$cdir/$md5.$format.gz") {
+		errorMessage("Incipit image is missing for $OPTIONS{'id'}.");
+	}
+	if ($compressQ) {
+		my $data = `cat "$cachedir/$cdir/$md5-incipit.$format.gz"`;
+		print "Content-Type: $mime$newline";
+		print "Content-Encoding: gzip$newline";
+		print "$newline";
+		print $data;
+		exit(0);
+	}
+
+	my $data = `zcat "$cachedir/$cdir/$md5-incipit.$format.gz"`;
 	print "Content-Type: $mime$newline";
 	print "$newline";
 	print $data;

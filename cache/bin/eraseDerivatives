@@ -14,6 +14,8 @@
 #                      Allowed derivative values:
 #                         mei      == MEI files
 #                         musicxml == MusicXML files
+#                         midi     == MIDI files
+#                         incipit  == Incipit SVG files
 #                         thema    == Thema search indexes
 #                         wordlist == Lyrics word lists.
 #
@@ -102,6 +104,12 @@ sub eraseDerivativesForEntry {
 			$command = "(cd $basedir/$md5 && rm -f $md5.mei.gz)";
 		} elsif ($derivative eq "musicxml") {
 			$command = "(cd $basedir/$md5 && rm -f $md5.musicxml.gz)";
+		} elsif ($derivative eq "incipit") {
+			$command = "(cd $basedir/$md5 && rm -f $md5-incipit.svg.gz)";
+		} elsif ($derivative eq "midi") {
+			$command = "(cd $basedir/$md5 && rm -f $md5.mid)";
+		} elsif ($derivative eq "mid") {
+			$command = "(cd $basedir/$md5 && rm -f $md5.mid)";
 		} elsif ($derivative eq "thema") {
 			$command = "(cd $basedir/$md5 && rm -f $md5*.thema)";
 		} elsif ($derivative eq "wordlist") {
