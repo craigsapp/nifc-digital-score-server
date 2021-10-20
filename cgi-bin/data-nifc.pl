@@ -399,7 +399,7 @@ sub sendMusicalIncipitContent {
 	# otherwise, unzip and send as plain text.
 	my $compressQ = 0;
 	$compressQ = 1 if $ENV{'HTTP_ACCEPT_ENCODING'} =~ /\bgzip\b/;
-	if (!-r "$cachedir/$cdir/$md5.$format.gz") {
+	if (!-r "$cachedir/$cdir/$md5-incipit.$format.gz") {
 		errorMessage("Incipit image is missing for $OPTIONS{'id'}.");
 	}
 	if ($compressQ) {

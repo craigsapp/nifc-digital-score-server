@@ -51,8 +51,17 @@ print STDERR "Creating $outputfile ...";
 my $command = "verovio --page-height 100 --scale 39";
 $command .= " --page-width 2500  --header none --adjust-page-height";
 
+my @contents = `cat $inputfile`;
+$contents[@contents] = "!!!filter: shed -e 's/LO:TX:.*t=P.*problem.*//L'\n";
+# Also add filter to remove SIC markers
 
-my $output = `$command $inputfile -o $outputfile`;
+
+open(my $pipe, "|-", "$command - -o $outputfile");
+for (my $i=0; $i<@contents; $i++) {
+	print $pipe $contents[$i];
+}
+close $pipe;
+
 if (-r $outputfile) {
 	print STDERR " Compressing $outputfile ...";
 	`$gzip $outputfile`;
