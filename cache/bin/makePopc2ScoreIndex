@@ -86,6 +86,7 @@ sub prepareEntry {
 	my $OTL = $references{"OTL"};
 	my $AGN = $references{"AGN"};
 	my $CNT = $references{"CNT"};
+	my $edit = $references{"edit"};
 	my $notecount = getNoteCount($kernfile);
 	my $siglum = $references{"SMS-siglum"};
 	my $shelfmark = $references{"SMS-shelfmark"};
@@ -125,6 +126,7 @@ sub prepareEntry {
 	$output .= "\@title:\t\t$title\n";
 	$output .= "\@AGN:\t\t$AGN\n";
 	$output .= "\@notecount:\t$notecount\n";
+	$output .= "\@lastedit:\t$edit\n";
 	$output .= "\@\@END:\t\tENTRY\n";
 	$output .= "\n";
 
@@ -165,13 +167,38 @@ sub getBibliographicReferences {
 	my @contents = <FILE>;
 	close FILE;
 	my %output;
+	my @dates;
 	for (my $i=0; $i<@contents; $i++) {
 		my $line = $contents[$i];
 		next if $line !~ /^!!!([^:]+)\s*:\s*(.*)\s*$/;
 		my $key = $1;
 		my $value = $2;
 		$output{$key} = $value;
+		if ($key eq "EST") { $dates[@dates] = $value; }
+		if ($key eq "END") { $dates[@dates] = $value; }
+		if ($key eq "EEV") { $dates[@dates] = $value; }
 	}
+
+	my @sdates;
+	for (my $i=0; $i<@dates; $i++) {
+		my $value = $dates[$i];
+		if ($value =~ /\b(\d{4})\b.*\b(\d+)\b.*(\d+)\b/) {
+			my $year  = $1;
+			my $month = int($2);
+			my $day   = int($3);
+			$month    = "0$month" if $month < 10;
+			$day      = "0$day" if $day < 10;
+			$value = "$year$month$day";
+			$sdates[@sdates] = $value;
+		}
+	}
+	@sdates = sort @sdates;
+	if (@sdates > 0) {
+		$output{"edit"} = $sdates[$#sdates];
+	} else {
+		$output{"edit"} = 0;
+	}
+
 	return %output;
 }
 
