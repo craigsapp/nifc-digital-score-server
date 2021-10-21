@@ -34,9 +34,9 @@ my $outputfile = "$md5id-incipit.svg";
 die "ERROR: Cannot find input file $inputfile\n" if !-r $inputfile;
 
 if (!$forceQ) {
-	exit 0 if -r "$outputfile";
-} elsif (-r "$outputfile") {
-	unlink("$outputfile");
+	exit 0 if -r "$outputfile.gz";
+} elsif (-r "$outputfile.gz") {
+	unlink("$outputfile.gz");
 }
 
 my $verovio = `which verovio`;
