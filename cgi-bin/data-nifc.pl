@@ -22,6 +22,10 @@
 #       krn       == Humdrum data file.
 #       mei       == Conversion to MEI data.
 #       mid       == Conversion to MIDI data.
+#       keyscape-abspre  == Keyscape (absolute, preprocessed)
+#       keyscape-relpre  == Keyscape (relative, preprocessed)
+#       keyscape-abspost == Keyscape (absolute, postprocessed)
+#       keyscape-relpost == Keyscape (relative, postprocessed)
 #       musicxml  == Conversion to MusicXML data.
 #       incipit   == Conversion to SVG musical incipit.
 #    Dynamically generated formats:
@@ -142,6 +146,14 @@ sub processParameters {
 		sendDataContent($format, @md5s);
 	} elsif ($format eq "incipit") {
 		sendDataContent($format, @md5s);
+	} elsif ($format eq "keyscape-abspre") {
+		sendDataContent($format, @md5s);
+	} elsif ($format eq "keyscape-relpre") {
+		sendDataContent($format, @md5s);
+	} elsif ($format eq "keyscape-abspost") {
+		sendDataContent($format, @md5s);
+	} elsif ($format eq "keyscape-relpost") {
+		sendDataContent($format, @md5s);
 	} elsif ($format eq "mid") {
 		sendDataContent($format, @md5s);
 	} elsif ($format eq "midi") {
@@ -179,6 +191,8 @@ sub sendDataContent {
 		sendMusicxmlContent($md5s[0]);
 	} elsif ($format eq "incipit") {
 		sendMusicalIncipitContent($md5s[0]);
+	} elsif ($format =~ /^keyscape/) {
+		sendKeyscapeContent($md5s[0], $format);
 	} elsif ($format eq "mid") {
 		sendMidiContent($md5s[0]);
 	} elsif ($format eq "midi") {
@@ -412,6 +426,25 @@ sub sendMusicalIncipitContent {
 	}
 
 	my $data = `zcat "$cachedir/$cdir/$md5-incipit.$format.gz"`;
+	print "Content-Type: $mime$newline";
+	print "$newline";
+	print $data;
+	exit(0);
+}
+
+
+
+##############################
+##
+## sendKeyscapeContent -- Return a keyscape of the given format.
+##
+
+sub sendKeyscapeContent {
+	my ($md5, $format) = @_;
+	my $cdir = getCacheSubdir($md5, $cacheDepth);
+	my $mime = "image/png";
+
+	my $data = `cat "$cachedir/$cdir/$md5-$format.png"`;
 	print "Content-Type: $mime$newline";
 	print "$newline";
 	print $data;

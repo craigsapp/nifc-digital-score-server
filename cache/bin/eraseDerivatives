@@ -15,6 +15,7 @@
 #                         mei      == MEI files
 #                         musicxml == MusicXML files
 #                         midi     == MIDI files
+#                         keyscape == keyscape plot images.
 #                         incipit  == Incipit SVG files
 #                         thema    == Thema search indexes
 #                         wordlist == Lyrics word lists.
@@ -108,6 +109,8 @@ sub eraseDerivativesForEntry {
 			$command = "(cd $basedir/$md5 && rm -f $md5-incipit.svg.gz)";
 		} elsif ($derivative eq "midi") {
 			$command = "(cd $basedir/$md5 && rm -f $md5.mid)";
+		} elsif ($derivative eq "keyscsape") {
+			$command = "(cd $basedir/$md5 && rm -f $md5-keyscape*.png)";
 		} elsif ($derivative eq "mid") {
 			$command = "(cd $basedir/$md5 && rm -f $md5.mid)";
 		} elsif ($derivative eq "thema") {

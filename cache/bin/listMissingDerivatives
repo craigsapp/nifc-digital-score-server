@@ -2,7 +2,7 @@
 #
 # Programmer:    Craig Stuart Sapp <craig.stanford.edu>
 # Creation Date: Thu 16 Sep 2021 05:27:02 PM PDT
-# Last Modified: Mon 20 Sep 2021 11:06:19 AM PDT
+# Last Modified: Fri 22 Oct 2021 10:56:29 AM PDT
 # Filename:      cache/bin/listMissingDerivatives
 # Syntax:        perl 5
 # vim:           ts=3
@@ -13,6 +13,7 @@
 #    mei      == MEI files
 #    musicxml == MusicXML files
 #    midi     == MIDI files
+#    keyscape == keyscape plot image
 #    incipit  == SVG incipit files
 #    thema    == Thema search indexes
 #
@@ -49,7 +50,7 @@ my %Index = getIndex($indexfile);
 #	print "$key\t$Index{$key}\n";
 #}
 
-$derivatives = "mei,musicxml,midi,incipit,thema,wordlist" if $derivatives =~ /^\s*$/;
+$derivatives = "mei,musicxml,midi,keyscape,incipit,thema,wordlist" if $derivatives =~ /^\s*$/;
 $derivatives =~ s/^[^0-9a-zA-Z_-]+//;
 $derivatives =~ s/[^0-9a-zA-Z_-]+$//;
 my @derivativeList = split (/[^0-9a-zA-Z_-]+/, $derivatives);

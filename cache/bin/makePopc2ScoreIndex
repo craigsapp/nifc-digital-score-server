@@ -182,7 +182,7 @@ sub getBibliographicReferences {
 	my @sdates;
 	for (my $i=0; $i<@dates; $i++) {
 		my $value = $dates[$i];
-		if ($value =~ /\b(\d{4})\b.*\b(\d+)\b.*(\d+)\b/) {
+		if ($value =~ /\b(\d{4})\b.*?\b(\d+)\b.*?\b(\d+)\b/) {
 			my $year  = $1;
 			my $month = int($2);
 			my $day   = int($3);
