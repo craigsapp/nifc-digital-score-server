@@ -26,6 +26,7 @@
 #       keyscape-relpre  == Keyscape (relative, preprocessed)
 #       keyscape-abspost == Keyscape (absolute, postprocessed)
 #       keyscape-relpost == Keyscape (relative, postprocessed)
+#       keyscape-info    == Keyscape image timing info
 #       musicxml  == Conversion to MusicXML data.
 #       incipit   == Conversion to SVG musical incipit.
 #    Dynamically generated formats:
@@ -154,6 +155,8 @@ sub processParameters {
 		sendDataContent($format, @md5s);
 	} elsif ($format eq "keyscape-relpost") {
 		sendDataContent($format, @md5s);
+	} elsif ($format eq "keyscape-info") {
+		sendDataContent($format, @md5s);
 	} elsif ($format eq "mid") {
 		sendDataContent($format, @md5s);
 	} elsif ($format eq "midi") {
@@ -191,6 +194,8 @@ sub sendDataContent {
 		sendMusicxmlContent($md5s[0]);
 	} elsif ($format eq "incipit") {
 		sendMusicalIncipitContent($md5s[0]);
+	} elsif ($format =~ /^keyscape-info/) {
+		sendKeyscapeInfoContent($md5s[0]);
 	} elsif ($format =~ /^keyscape/) {
 		sendKeyscapeContent($md5s[0], $format);
 	} elsif ($format eq "mid") {
@@ -445,6 +450,43 @@ sub sendKeyscapeContent {
 	my $mime = "image/png";
 
 	my $data = `cat "$cachedir/$cdir/$md5-$format.png"`;
+	print "Content-Type: $mime$newline";
+	print "$newline";
+	print $data;
+	exit(0);
+}
+
+
+
+##############################
+##
+## sendKeyscapeInfoContent -- Return timing information for keyscape
+##     images.
+##
+
+sub sendKeyscapeInfoContent {
+	my ($md5) = @_;
+	my $cdir = getCacheSubdir($md5, $cacheDepth);
+	my $mime = "application/json";
+
+	# MusicXML data is stored in gzip-compressed file.  If the browser
+	# accepts gzip compressed data, send the compressed form of the data;
+	# otherwise, unzip and send as plain text.
+	my $compressQ = 0;
+	$compressQ = 1 if $ENV{'HTTP_ACCEPT_ENCODING'} =~ /\bgzip\b/;
+	if (!-r "$cachedir/$cdir/$md5-keyscape-info.json.gz") {
+		errorMessage("MusicXML file is missing for $OPTIONS{'id'}.");
+	}
+	if ($compressQ) {
+		my $data = `cat "$cachedir/$cdir/$md5-keyscape-info.json.gz"`;
+		print "Content-Type: $mime$newline";
+		print "Content-Encoding: gzip$newline";
+		print "$newline";
+		print $data;
+		exit(0);
+	}
+
+	my $data = `zcat "$cachedir/$cdir/$md5-keyscape-info.json.gz"`;
 	print "Content-Type: $mime$newline";
 	print "$newline";
 	print $data;
