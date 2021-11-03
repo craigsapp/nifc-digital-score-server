@@ -80,9 +80,9 @@ sub prepareEntry {
 	$composer = $references{"COS1"} if $composer =~ /^\s*$/;
 	die "No composer field in file $kernfile\n" if $composer =~ /^\s*$/;
 
-	my $title = "";
+	# my $title = "";
 	my $GTL = $references{"GTL"};
-	my $PTL = $references{"PTL"};
+	my $OPR = $references{"OPR"};
 	my $OTL = $references{"OTL"};
 	my $AGN = $references{"AGN"};
 	my $CNT = $references{"CNT"};
@@ -98,22 +98,6 @@ sub prepareEntry {
 	$CNT = "undetermined" if $CNT =~ /^\s*$/;
 	$AGN = "uncategorized" if $AGN =~ /^\s*$/;
 
-	if (($GTL !~ /^\s*$/) && ($PTL !~ /^\s*$/) && ($GTL !~ /^\s*$/)) {
-		$title = "$GTL &mdash; $PTL &mdash; $OTL";
-	} elsif (($GTL !~ /^\s*$/) && ($PTL !~ /^\s*$/)) {
-		$title = "$GTL &mdash; $PTL";
-	} elsif (($GTL !~ /^\s*$/) && ($OTL !~ /^\s*$/)) {
-		$title = "$GTL &mdash; $OTL";
-	} elsif (($PTL !~ /^\s*$/) && ($OTL !~ /^\s*$/)) {
-		$title = "$PTL &mdash; $OTL";
-	} elsif ($GTL !~ /^\s*$/) {
-		$title = $GTL;
-	} elsif ($PTL !~ /^\s*$/) {
-		$title = $PTL;
-	} elsif ($OTL !~ /^\s*$/) {
-		$title = $OTL;
-	}
-
 	my $output = "";
 	$output .= "\@\@BEGIN:\tENTRY\n";
 	$output .= "\@cenid:\t\t$cenid\n";
@@ -123,7 +107,9 @@ sub prepareEntry {
 	$output .= "\@shelfwork:\t$shelfwork\n";
 	$output .= "\@COM:\t\t$composer\n";
 	$output .= "\@CNT:\t\t$CNT\n";
-	$output .= "\@title:\t\t$title\n";
+	$output .= "\@GTL:\t\t$GTL\n" if $GTL !~ /^\s*$/;
+	$output .= "\@OPR:\t\t$OPR\n" if $OPR !~ /^\s*$/;
+	$output .= "\@OTL:\t\t$OTL\n" if $OTL !~ /^\s*$/;
 	$output .= "\@AGN:\t\t$AGN\n";
 	$output .= "\@notecount:\t$notecount\n";
 	$output .= "\@lastedit:\t$edit\n";

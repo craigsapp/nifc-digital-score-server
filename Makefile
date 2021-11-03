@@ -65,6 +65,14 @@ all:
 ##    (and humdrum-chopin-first-editions).
 ##
 
+un: update-nohup
+nu: update-nohup
+nohup-update: update-nohup
+update-nohup: kern
+	nohup make update >& nohup.out &
+	@echo Saving processing text in nohup.out.
+	@echo Type "tail -f nohup.out" to monitor in realtime.
+
 update: kern
 	(cd cache; make update)
 

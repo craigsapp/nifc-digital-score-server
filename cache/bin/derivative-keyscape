@@ -46,6 +46,12 @@ if (!$forceQ) {
 	unlink("$md5id-keyscape-abspost.png");
 	unlink("$md5id-keyscape-relpost.png");
 	unlink("$md5id-keyscape-info.json.gz");
+} elsif (-r "$md5id-keyscape-info.json.gz") {
+	unlink("$md5id-keyscape-abspre.png");
+	unlink("$md5id-keyscape-relpre.png");
+	unlink("$md5id-keyscape-abspost.png");
+	unlink("$md5id-keyscape-relpost.png");
+	unlink("$md5id-keyscape-info.json.gz");
 }
 
 my $mkeyscape = `which mkeyscape`;
@@ -66,7 +72,7 @@ die "ERROR: Cannot locate gzip command\n" if $gzip =~ /^\s*$/;
 
 print STDERR "Creating keyscape files for $md5id ...";
 my $output;
-my $output = `cat $inputfile | $mkeyscape -n | $convert - png:- > $md5id-keyscape-abspre.png`;
+$output = `cat $inputfile | $mkeyscape -n | $convert - png:- > $md5id-keyscape-abspre.png`;
 $output = `cat $inputfile | transpose -k c | $mkeyscape -n | $convert - png:- > $md5id-keyscape-relpre.png`;
 $output = `cat $inputfile | $mkeyscape -n --trim | $convert - png:- > $md5id-keyscape-abspost.png`;
 $output = `cat $inputfile | transpose -k c | $mkeyscape -n --trim | $convert - png:- > $md5id-keyscape-relpost.png`;
