@@ -883,8 +883,8 @@ sub cleanId {
 ##############################
 ##
 ## writeLog -- It is presumed that the log directory is writable by this script;
-##     otherwise, no logs will be written.  Access logs are split into months
-##     to allow archiving or deleting old logs as necessary.
+##     otherwise, no logs will be written.  Access logs are split by day to
+##     allow archiving or deleting old logs as necessary.
 ##
 
 sub writeLog {
@@ -894,7 +894,7 @@ sub writeLog {
 	return if ($id eq "favicon") && ($format eq "ico");
 
 	my %date = getDate();
-	my $logfile = "$logdir/$date{'year'}$date{'month'}.log";
+	my $logfile = "$logdir/$date{'year'}$date{'month'}$date{'day'}.log";
 	my $datestring = $date{"year"};
 	$datestring .= $date{"month"};
 	$datestring .= $date{"day"};
@@ -913,7 +913,7 @@ sub writeLog {
 
 ##############################
 ##
-## getDate -- 
+## getDate --
 ##
 
 sub getDate {
