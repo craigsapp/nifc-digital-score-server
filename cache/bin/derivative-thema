@@ -16,6 +16,15 @@
 use strict;
 use Getopt::Long;
 
+my $tindex = `which tindex`;
+chomp $tindex;
+die "Error: Cannot locate tindex command\n" if $tindex =~ /^\s*$/;
+
+my $chord = `which chord`;
+chomp $chord;
+die "Error: Can not find chord tool.  Install humlib?" if $chord =~ /^\s*$/;
+
+
 my $tag = "pitch";
 my $ext = "thema";
 
@@ -41,13 +50,15 @@ if (!$forceQ) {
 	unlink("$md5id-$tag.$ext");
 }
 
-
-my $tindex = `which tindex`;
-chomp $tindex;
-die "Error: Cannot locate tindex command\n" if $tindex =~ /^\s*$/;
-
-
-`$tindex $inputfile -p > $md5id-$tag.$ext`;
+print STDERR "Generating $md5id pitch index\n";
+my @pindex = `cat $inputfile | $chord -d | $tindex -p`;
+open FILE, ">$md5id-$tag.$ext" or die "Cannot write $md5id-$tag.$ext\n";
+for (my $i=0; $i<@pindex; $i++) {
+	my $line = $pindex[$i];
+	$pindex[$i] = "$inputfile$line" if $line =~ /^:/;
+	print FILE $pindex[$i];
+}
+close FILE;
 
 
 
