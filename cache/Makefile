@@ -209,6 +209,24 @@ popc2-score-index:
 	(cd indexes; gzip popc2-score-index.json)
 	(cd indexes; gzip popc2-score-index.aton)
 
+popc1-score-index-new:
+	@mkdir -p indexes
+	-rm -f indexes/popc1-score-index.aton.gz
+	-rm -f indexes/popc1-score-index.json.gz
+	bin/makePopc1ScoreIndex -i cache-index-new.hmd > indexes/popc1-score-index.aton
+	(cd indexes; aton2json popc1-score-index.aton | sed 's/^{"ENTRY"://; s/}[]]}$$/}]/' > popc1-score-index.json)
+	(cd indexes; gzip popc1-score-index.json)
+	(cd indexes; gzip popc1-score-index.aton)
+
+popc1-score-index:
+	@mkdir -p indexes
+	-rm -f indexes/popc1-score-index.aton.gz
+	-rm -f indexes/popc1-score-index.json.gz
+	bin/makePopc1ScoreIndex -i cache-index.hmd > indexes/popc1-score-index.aton
+	(cd indexes; aton2json popc1-score-index.aton | sed 's/^{"ENTRY"://; s/}[]]}$$/}]/' > popc1-score-index.json)
+	(cd indexes; gzip popc1-score-index.json)
+	(cd indexes; gzip popc1-score-index.aton)
+
 
 lyrics-index-new: popc2-lyrics-index-new
 popc2-lyrics-index-new:

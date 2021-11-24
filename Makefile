@@ -175,3 +175,19 @@ check-kern:
 
 
 
+##############################
+##
+## erase-purge --
+##
+
+ep: erase-purge
+purge-erase: erase-purge
+purged-erase: erase-purge
+erase-purged: erase-purge
+erase-purge:
+	(cd cache; make erase-purge)
+
+
+
+
+
