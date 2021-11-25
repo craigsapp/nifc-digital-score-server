@@ -71,7 +71,8 @@ nohup-update: update-nohup
 update-nohup: kern
 	nohup make update >& nohup.out &
 	@echo Saving processing text in nohup.out.
-	@echo Type "tail -f nohup.out" to monitor in realtime.
+	# https://stackoverflow.com/questions/4842424/list-of-ansi-color-escape-sequences
+	@echo -e "\033[31mType \"tail -f nohup.out\" to monitor progress in realtime.\033[0m"
 
 update: kern
 	(cd cache; make update)
