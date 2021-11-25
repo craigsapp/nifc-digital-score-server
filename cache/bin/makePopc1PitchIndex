@@ -1,75 +1,68 @@
 #!/usr/bin/perl
 #
 # Programmer:    Craig Stuart Sapp <craig.stanford.edu>
-# Creation Date: Mon 04 Oct 2021 08:55:47 PM PDT
-# Last Modified: Mon 04 Oct 2021 08:55:49 PM PDT
-# Filename:      cache/bin/makeLyricsIndex
+# Creation Date: Mon 11 Oct 2021 03:52:33 PM PDT
+# Last Modified: Wed 24 Nov 2021 04:04:54 PM PST
+# Filename:      cache/bin/makePopc1PitchIndex
 # Syntax:        perl 5
 # vim:           ts=3
 #
-# Description:   Reads cache-index.hmd to generate a list of lyrics wordlist fields.
+# Description:   Collate POPC-1 pitch indexes into a
+#                single index file.
 #
 
 use strict;
+
 
 use strict;
 use Getopt::Long;
 
 my $indexfile;
-my $kerndir;
 Getopt::Long::Configure("bundling");
 GetOptions (
-   'i|index=s' => \$indexfile
+	"i|index"    => \$indexfile
 );
 
 $indexfile = "cache-index.hmd" if $indexfile =~ /^\s*$/;
 
 # Cache depth (number of subdirectory levels until file directories).
 my $cacheDepth = 1;
+$cacheDepth = 1 if $cacheDepth < 1;
+$cacheDepth = 1 if $cacheDepth > 3;
 
-my %index = getIndexCentId($indexfile);
+my %index = getIndex($indexfile);
 
-my @keys = sort keys %index;
-
-my $output = "";
-foreach my $key (@keys) {
-	print STDERR "Processing $key ...\n";
-	$output .= prepareEntry($key, $index{$key});
+foreach my $key (sort keys %index) {
+	my $value = $index{$key};
+	next if $value =~ /^pl-/;
+	#print "$key\t$index{$key}\n";
+	my $basedir = getTargetDir($key, $cacheDepth);
+	my @contents = `cat $basedir/$key-pitch.thema`;
+	chomp @contents;
+	for (my $i=0; $i<@contents; $i++) {
+		next if $contents[$i] =~ /^\s*$/;
+		$contents[$i] =~ s/^$key\.krn/$value/;
+		$contents[$i] =~ s/\tM.*//;
+		$contents[$i] =~ s/\t[Zz][^\t]*//;
+		next if $contents[$i] =~ /\tJ\s*$/;
+		print "$contents[$i]\n";
+	}
 }
-print $output;
+
+
 
 exit(0);
 
 ###########################################################################
 
 
-##############################
-##
-## prepareEntry --
-##
-
-sub prepareEntry {
-	my ($cenid, $md5) = @_;
-	my $sourcedir = getSourceDir($md5, $cacheDepth);
-
-	my $wordlistfile = "$sourcedir/$md5-wordlist.txt";
-	return "" if !-r $wordlistfile;
-
-	my @contents = `cat $wordlistfile`;
-	my $line = $contents[0];
-	chomp $line;
-	return "" if $line =~ /^\s*$/;
-	return "$cenid\t$line\n";
-}
-
-
 
 ##############################
 ##
-## getSourceDir --
+## getTargetDir --
 ##
 
-sub getSourceDir {
+sub getTargetDir {
 	my ($md5, $cacheDepth) = @_;
 	return $md5 if $cacheDepth == 0;
 	my @pieces = split(//, $md5);
@@ -82,21 +75,20 @@ sub getSourceDir {
 }
 
 
-
 ##############################
 ##
-## getIndexCentId -- Mapping from CentId to MD5 ID.
+## getIndex --
 ##
 
-sub getIndexCentId {
+sub getIndex {
 	my ($indexfile) = @_;
 	open(FILE, $indexfile) or die "Cannot read $indexfile\n";
 	my @contents = <FILE>;
 	chomp @contents;
 	close FILE;
-	my $md5Index   = -1;
-	my $cenidIndex = -1;
-	my $exinterp   = 0;
+	my $md5Index    = -1;
+	my $fileidIndex = -1;
+	my $exinterp = 0;
 	my %output;
 	for (my $i=0; $i<@contents; $i++) {
 		my $line = $contents[$i];
@@ -105,23 +97,21 @@ sub getIndexCentId {
 			$exinterp = 1;
 			my @fields = split(/\t+/, $line);
 			for (my $j=0; $j<@fields; $j++) {
-				$md5Index    = $j if $fields[$j] eq "**md5";
-				$cenidIndex  = $j if $fields[$j] eq "**cenid";
+				$md5Index = $j if $fields[$j] eq "**md5";
+				$fileidIndex = $j if $fields[$j] eq "**fileid";
 			}
 			next;
 		}
 		next if $line =~ /^\*/;
 		next if !$exinterp;
 		die "Cannot find MD5 column in index file\n" if $md5Index < 0;
-		die "Cannot find FileId column in index file\n" if $cenidIndex < 0;
+		die "Cannot find FileId column in index file\n" if $fileidIndex < 0;
 		my @fields = split(/\t+/, $line);
-		my $cenid = $fields[$cenidIndex];
-		next if $cenid eq ".";
-		my $md5 = $fields[$md5Index];
-		$output{$cenid} = $md5;
+		$output{$fields[$md5Index]} = $fields[$fileidIndex];
 	}
 	return %output;
 }
+
 
 
 
