@@ -188,8 +188,8 @@ erase-cache:
 ##     is related to which index file is read for preparing the indexes.
 ##
 
-indexes-new: indexes-new-popc1 indexes-new-popc2
-indexes: indexes-popc1 indexes-popc2
+indexes-new: indexes-new-popc1 indexes-new-popc2 siglum-index
+indexes: indexes-popc1 indexes-popc2 siglum-index
 
 indexes-new-popc2: popc2-score-index-new popc2-lyrics-index-new popc2-composer-index popc2-pitch-index
 indexes-popc2: popc2-score-index popc2-lyrics-index popc2-composer-index popc2-pitch-index
@@ -271,13 +271,20 @@ composer-index: popc2-composer-index popc1-composer-index
 popc2-composer-index:
 	-rm -f indexes/popc2-composer-index.aton.gz
 	-rm -f indexes/popc2-composer-index.json.gz
-	wget "https://script.google.com/macros/s/AKfycby5J8xq1V8bNpA567Kw3yiQ5EcfS3EvMDRZTrogBxfrL5Q93fSJhACZ42FuhuRoESkZSQ/exec?format=aton" -O indexes/popc2-composer-index.aton
 	wget "https://script.google.com/macros/s/AKfycby5J8xq1V8bNpA567Kw3yiQ5EcfS3EvMDRZTrogBxfrL5Q93fSJhACZ42FuhuRoESkZSQ/exec?format=json" -O indexes/popc2-composer-index.json
+	wget "https://script.google.com/macros/s/AKfycby5J8xq1V8bNpA567Kw3yiQ5EcfS3EvMDRZTrogBxfrL5Q93fSJhACZ42FuhuRoESkZSQ/exec?format=aton" -O indexes/popc2-composer-index.aton
 	(cd indexes; gzip popc2-composer-index.aton)
 	(cd indexes; gzip popc2-composer-index.json)
 
 popc1-composer-index:
 
+siglum-index:
+	-rm -f indexes/siglum-index.aton.gz
+	-rm -f indexes/siglum-index.json.gz
+	wget "https://script.google.com/macros/s/AKfycbyCYdG0G1mlr-EyN498pmM3w5OD967frNkdHN2JJaWe53LQEriPk79fZ0Ycc8iZq_DsVw/exec?format=json" -O indexes/siglum-index.json
+	wget "https://script.google.com/macros/s/AKfycbyCYdG0G1mlr-EyN498pmM3w5OD967frNkdHN2JJaWe53LQEriPk79fZ0Ycc8iZq_DsVw/exec?format=aton" -O indexes/siglum-index.aton
+	(cd indexes; gzip siglum-index.aton)
+	(cd indexes; gzip siglum-index.json)
 
 
 ##############################
