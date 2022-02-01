@@ -28,11 +28,16 @@
 #       keyscape-relpost == Keyscape (relative, postprocessed)
 #       keyscape-info    == Keyscape image timing info
 #       musicxml  == Conversion to MusicXML data.
+#          https://data.nifc.humdrum.org/18xx:100.musicxml
 #       incipit   == Conversion to SVG musical incipit.
+#          https://data.nifc.humdrum.org/18xx:100.incipit
 #    Dynamically generated formats:
 #       lyrics    == Extract lyrics HTML page
+#          https://data.nifc.humdrum.org/18xx:100.lyrics
 #       info-aton == Basic metadata about the file in ATON format.
+#          https://data.nifc.humdrum.org/18xx:100.aton
 #       info-json == Basic metadata about the file in JSON format.
+#          https://data.nifc.humdrum.org/18xx:100.json
 #    Debug items:
 #       test     == Print environmental variables.
 #
