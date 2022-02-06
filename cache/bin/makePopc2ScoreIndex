@@ -85,8 +85,10 @@ sub prepareEntry {
 	my $OPR = $references{"OPR"};
 	my $OTL = $references{"OTL"};
 	my $AGN = $references{"AGN"};
+	my $AIN = $references{"AIN"};
 	my $CNT = $references{"CNT"};
 	my $edit = $references{"edit"};
+	my $key  = getKeyDesignation($kernfile);
 	my $notecount = getNoteCount($kernfile);
 	my $siglum = $references{"SMS-siglum"};
 	my $shelfmark = $references{"SMS-shelfmark"};
@@ -111,6 +113,8 @@ sub prepareEntry {
 	$output .= "\@OPR:\t\t$OPR\n" if $OPR !~ /^\s*$/;
 	$output .= "\@OTL:\t\t$OTL\n" if $OTL !~ /^\s*$/;
 	$output .= "\@AGN:\t\t$AGN\n";
+	$output .= "\@AIN:\t\t$AIN\n";
+	$output .= "\@key:\t\t$key\n";
 	$output .= "\@notecount:\t$notecount\n";
 	$output .= "\@lastedit:\t$edit\n";
 	$output .= "\@\@END:\t\tENTRY\n";
@@ -247,6 +251,45 @@ sub getIndexCentId {
 		$output{$cenid} = $md5;
 	}
 	return %output;
+}
+
+
+
+##############################
+##
+## getKeyDesignation --
+##
+
+sub getKeyDesignation {
+	my ($file) = @_;
+	open (FILE, $file) or die "Cannot read file $file\n"; 
+	my @contents = <FILE>;
+	close FILE;
+	chomp @contents;
+	for (my $i=0; $i<@contents; $i++) {
+		my $line = $contents[$i];
+		next if $line =~ /^\s*$/;
+		next if $line =~ /^!/;
+		if ($line =~ /^\*/) {
+			my @data = split(/\t+/, $line);
+			for (my $j=0; $j<@data; $j++) {
+				my $datum = $data[$j];
+				if ($datum =~ /^\*([A-G][-#]*):$/i) {
+					return $1;
+				}
+				if ($datum =~ /^\*([A-G][-#]*:(ion|lyd|mix))$/) {
+					return $1;
+				}
+				if ($datum =~ /^\*([a-g][-#]*:(dor|phr|aeo|loc))$/) {
+					return $1;
+				}
+			}
+		}
+		next if $line =~ /^\*/;
+		next if $line =~ /^=/;
+		last;
+	}
+	return "";
 }
 
 
