@@ -40,7 +40,8 @@ my @keys = sort keys %index;
 my $output = "";
 # $output .= "\@\@TYPE:notecount:Integer\n\n";
 foreach my $key (@keys) {
-	next if $key =~ /^pl-/i; # ignore POPC2 scores
+	next if $key =~ /^pl-/i; # ignore POPC2 scores from Poland
+	next if $key =~ /^s-/i; # ignore POPC2 scores from Sweden
 	print STDERR "Processing $key ... for score index\n";
 	$output .= prepareEntry($key, $index{$key});
 }

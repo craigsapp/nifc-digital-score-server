@@ -2,7 +2,7 @@
 #
 # Programmer:    Craig Stuart Sapp <craig.stanford.edu>
 # Creation Date: Mon 11 Oct 2021 03:52:33 PM PDT
-# Last Modified: Wed 24 Nov 2021 04:04:54 PM PST
+# Last Modified: Wed 09 Feb 2022 10:21:29 PM PST (Suppress s- siglum scores)
 # Filename:      cache/bin/makePopc1PitchIndex
 # Syntax:        perl 5
 # vim:           ts=3
@@ -34,7 +34,8 @@ my %index = getIndex($indexfile);
 
 foreach my $key (sort keys %index) {
 	my $value = $index{$key};
-	next if $value =~ /^pl-/;
+	next if $value =~ /^pl-/;  # POPC2 scores from Poland
+	next if $value =~ /^s-/;   # POPC2 scores from Sweden
 	#print "$key\t$index{$key}\n";
 	my $basedir = getTargetDir($key, $cacheDepth);
 	my @contents = `cat $basedir/$key-pitch.thema`;

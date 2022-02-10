@@ -2,7 +2,7 @@
 #
 # Programmer:    Craig Stuart Sapp <craig.stanford.edu>
 # Creation Date: Sun Sep 12 06:28:28 PDT 2021
-# Last Modified: Sun 03 Oct 2021 01:11:45 PM PDT
+# Last Modified: Wed 09 Feb 2022 10:20:11 PM PST (Added s- sigla)
 # Filename:      cache/bin/makeIndex
 # Syntax:        perl 5
 #
@@ -53,11 +53,13 @@ sub generateIndex {
 		$base =~ s/.*\///;
 		$base =~ s/\.krn$//;
 		my $shortbase = $base;
-		if ($base =~ /^pl-/) {
+		if (($base =~ /^pl-/) || ($base =~ /^s-/)) {
+			# pl- for Poland
+			# s- for Sweden
 			# POPC-2 file
 			$shortbase =~ s/_.*//;
 		} else {
-			# POPC-1 file
+			# POPC-1 file (Chopin)
 			$shortbase = $base;
 		}
 		my $sum = `$md5sum $file`;
@@ -70,6 +72,8 @@ sub generateIndex {
 		my $shortsum = $1;
 		my $cenid = ".";
 		if ($shortbase =~ /^pl-/) {
+			$cenid = getCenturyId($file);
+		} elsif ($shortbase =~ /^s-/) {
 			$cenid = getCenturyId($file);
 		}
 		$output .= "$shortsum\t.\t$cenid\t$shortbase\n";
