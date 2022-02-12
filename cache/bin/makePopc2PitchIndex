@@ -12,9 +12,6 @@
 #
 
 use strict;
-
-
-use strict;
 use Getopt::Long;
 
 my $indexfile;

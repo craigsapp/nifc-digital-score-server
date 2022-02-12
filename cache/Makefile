@@ -188,14 +188,14 @@ erase-cache:
 ##     is related to which index file is read for preparing the indexes.
 ##
 
-indexes-new: indexes-new-popc1 indexes-new-popc2 siglum-index
-indexes: indexes-popc1 indexes-popc2 siglum-index
+indexes-new: indexes-new-popc1 indexes-new-popc2 siglum-index instrument-index-new
+indexes: indexes-popc1 indexes-popc2 siglum-index instrument-index
 
-indexes-new-popc2: popc2-score-index-new popc2-lyrics-index-new popc2-composer-index popc2-pitch-index
-indexes-popc2: popc2-score-index popc2-lyrics-index popc2-composer-index popc2-pitch-index
+indexes-new-popc2: popc2-score-index-new popc2-lyrics-index-new popc2-composer-index popc2-pitch-index instrument-index-new
+indexes-popc2: popc2-score-index popc2-lyrics-index popc2-composer-index popc2-pitch-index instrument-index
 
-indexes-new-popc1: popc1-score-index-new popc1-lyrics-index-new popc1-composer-index popc1-pitch-index
-indexes-popc1: popc1-score-index popc1-lyrics-index popc1-composer-index popc1-pitch-index
+indexes-new-popc1: popc1-score-index-new popc1-lyrics-index-new popc1-composer-index popc1-pitch-index instrument-index-new
+indexes-popc1: popc1-score-index popc1-lyrics-index popc1-composer-index popc1-pitch-index instrument-index
 
 
 popc2-score-index-new:
@@ -264,6 +264,18 @@ popc1-lyrics-index:
 	bin/makePopc1LyricsIndex -i cache-index.hmd > indexes/popc1-lyrics-index.txt
 	(cd indexes; gzip popc1-lyrics-index.txt)
 
+
+instrument-index-new:
+	@mkdir -p indexes
+	-rm -f indexes/instrument-index.json.gz
+	bin/makeInstrumentIndex -i cache-index-new.hmd > indexes/instrument-index.json
+	(cd indexes; gzip instrument-index.json)
+
+instrument-index:
+	@mkdir -p indexes
+	-rm -f indexes/instrument-index.json.gz
+	bin/makeInstrumentIndex -i cache-index.hmd > indexes/instrument-index.json
+	(cd indexes; gzip instrument-index.json)
 
 
 composer-index: popc2-composer-index popc1-composer-index
