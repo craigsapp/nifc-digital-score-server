@@ -97,6 +97,8 @@ sub prepareEntry {
 	$fileid =~ s/\.krn//;
 	$fileid =~ s/_.*//;
 
+	return if $fileid =~ /^s-/;
+
 	$CNT = "undetermined" if $CNT =~ /^\s*$/;
 	$AGN = "uncategorized" if $AGN =~ /^\s*$/;
 

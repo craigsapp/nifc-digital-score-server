@@ -51,7 +51,7 @@ if (!$forceQ) {
 }
 
 print STDERR "Generating $md5id pitch index\n";
-my @pindex = `cat $inputfile | $chord -d | $tindex -p`;
+my @pindex = `cat $inputfile | $chord -d | $tindex --rests -p`;
 open FILE, ">$md5id-$tag.$ext" or die "Cannot write $md5id-$tag.$ext\n";
 for (my $i=0; $i<@pindex; $i++) {
 	my $line = $pindex[$i];

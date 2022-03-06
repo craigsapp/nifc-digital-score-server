@@ -53,6 +53,7 @@ sub generateIndex {
 		$base =~ s/.*\///;
 		$base =~ s/\.krn$//;
 		my $shortbase = $base;
+		next if $base =~ /^s-/;
 		if (($base =~ /^pl-/) || ($base =~ /^s-/)) {
 			# pl- for Poland
 			# s- for Sweden

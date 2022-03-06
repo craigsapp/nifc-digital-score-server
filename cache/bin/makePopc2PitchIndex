@@ -31,6 +31,7 @@ my %index = getIndex($indexfile);
 
 foreach my $key (sort keys %index) {
 	my $value = $index{$key};
+	next if $value =~ /^s-/;
 	if (($value !~ /^pl-/) && ($value !~ /^s-/)) {
 		next;
 	}
