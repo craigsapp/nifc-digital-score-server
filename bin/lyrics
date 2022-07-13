@@ -2,7 +2,7 @@
 #
 # Programmer:    Craig Stuart Sapp <craig.stanford.edu>
 # Creation Date: Mon Mar 21 17:06:33 PDT 2016
-# Last Modified: Mon 31 Jan 2022 09:52:39 PM PST
+# Last Modified: Wed Jul 13 03:23:28 AM EDT 2022
 # Filename:      lyrics
 # Syntax:        perl 5
 # vim:           ts=3
@@ -23,9 +23,17 @@
 use strict;
 use Getopt::Long;
 
-my $extractx  = "/project/museinfo/bin/extractx";
-my $serialize = "/project/museinfo/bin/serialize";
-my $humcat    = "/project/museinfo/bin/humcat";
+my $extractx = `which extract`;
+chomp $extractx;
+die "Cannot find extractx tool" if $extractx =~ /^\s*$/;
+
+my $serialize = `which serialize`;
+chomp $serialize;
+die "Cannot find serialize tool" if $serialize =~ /^\s*$/;
+
+my $humcat = `which humcat`;
+chomp $humcat;
+die "Cannot find humcat tool" if $humcat =~ /^\s*$/;
 
 my $boringWords = <<"EOT";
 il 'l lo l' la gli gl' le un un’ uno una de di d' del dello della dell'

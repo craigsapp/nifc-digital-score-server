@@ -1,7 +1,7 @@
 
 
 
-# Install humdrum2musicxml convert in a place that the drevative-musicxml script
+# Install humdrum2musicxml convert in a place that the derivative-musicxml script
 # should be able to find it:
 
 install:
