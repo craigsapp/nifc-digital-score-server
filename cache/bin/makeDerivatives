@@ -63,7 +63,7 @@ GetOptions (
 $groups = "0123456789abcdef" if $groups =~ /^\s*$/;
 $groups = reverse($groups) if $reverseQ;
 
-$derivatives = "mei,musicxml,midi,keyscape,incipit,thema,wordlist" if $derivatives =~ /^\s*$/;
+$derivatives = "mei,musicxml,midi,keyscape,prange,incipit,thema,wordlist" if $derivatives =~ /^\s*$/;
 $derivatives =~ s/^[^0-9a-zA-Z_-]+//;
 $derivatives =~ s/[^0-9a-zA-Z_-]+$//;
 my @derivativeList = split (/[^0-9a-zA-Z_-]+/, $derivatives);

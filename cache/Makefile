@@ -319,6 +319,7 @@ other-derivatives: regenerate-spreadsheet-new
 ##   musicxml:  Convert Humdrum files to MusicXML files.
 ##   midi:      Convert Humdrum files to MIDI files.
 ##   keyscape:  Convert Humdrum files into keyscape plot images.
+##   prange:    Convert Humdrum files into prange plot images.
 ##   thema:     Generate thema search indexes.
 ##   wordlist:  Generate word list from lyrics in file.
 ##
@@ -332,7 +333,7 @@ regenerate-all:
 missing-all:
 	@bin/listMissingDerivatives -mcf
 
-erase-all: erase-mei erase-musicxml erase-midi erase-keyscape erase-thema erase-wordlist
+erase-all: erase-mei erase-musicxml erase-midi erase-keyscape erase-prange erase-thema erase-wordlist
 
 
 ##############################
@@ -407,6 +408,25 @@ missing-keyscape:
 
 erase-keyscape:
 	bin/eraseDerivatives -d keyscape
+
+
+
+##############################
+##
+## Prange conversions.
+##
+
+generate-prange:
+	bin/makeDerivatives -v -d prange
+
+regenerate-prange:
+	bin/makeDerivatives -f -d prange
+
+missing-prange:
+	@bin/listMissingDerivatives -d prange -mcf
+
+erase-prange:
+	bin/eraseDerivatives -d prange
 
 
 
