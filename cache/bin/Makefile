@@ -9,6 +9,9 @@
 ## Description:   Makefile to install support scripts for generating data.
 ##
 
+# Install humdrum2musicxml convert in a place that the derivative-musicxml
+# script should be able to find it.  Same for pmx2svg for creating pitch
+# ranges.
 
 install:
 	sudo cp humdrum2musicxml /usr/local/bin/humdrum2musicxml
