@@ -222,6 +222,21 @@ if (!-r $perl) {
 
 ##############################
 ##
+## pmx2svg -- Needed for converting pitch ranges from PMX data to SVG images.
+##
+
+my $pmx2svg = `which pmx2svg`;
+chomp $pmx2svg;
+if (!-r $pmx2svg) {
+	print "pmx2svg\t\t\tMISSING. Install from cache/bin.\n";
+} elsif ($verboseQ) {
+	print "pmx2svg\t\t\tINSTALLED:\t$pmx2svg\n";
+}
+
+
+
+##############################
+##
 ## prange -- Needed for creating pitch range plots
 ##
 
