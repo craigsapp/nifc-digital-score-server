@@ -1,7 +1,7 @@
 ##
 ## Programmer:    Craig Stuart Sapp <craig@ccrma.stanford.edu>
 ## Creation Date: Sun Sep 12 06:50:13 PDT 2021
-## Last Modified: Wed 22 Sep 2021 09:55:10 PM PDT
+## Last Modified: Sat Aug 13 17:31:02 CEST 2022
 ## Syntax:        GNU Makefile
 ## Filename:      cache/Makefile
 ## vim:           ts=3:nowrap
@@ -62,7 +62,7 @@ all:
 ## 7. cache-thema: Create repertory-wide music search indexes.
 ##
 
-update: cache-index copy-kern derivatives indexes-new publish purge cache-thema
+update: cache-index copy-kern derivatives indexes-new publish purge cache-thema generate-musicxml
 
 
 
@@ -235,7 +235,6 @@ popc1-score-index:
 	(cd indexes; gzip popc1-score-index.aton)
 
 
-
 lyrics-index-new: popc2-lyrics-index-new popc1-lyrics-index-new
 lyrics-index: popc2-lyrics-index popc1-lyrics-index
 
@@ -251,7 +250,6 @@ popc2-lyrics-index:
 	bin/makePopc2LyricsIndex -i cache-index.hmd > indexes/popc2-lyrics-index.txt
 	(cd indexes; gzip popc2-lyrics-index.txt)
 
-
 popc1-lyrics-index-new:
 	@mkdir -p indexes
 	-rm -f indexes/popc1-lyrics-index.txt.gz
@@ -263,7 +261,6 @@ popc1-lyrics-index:
 	-rm -f indexes/popc1-lyrics-index.txt.gz
 	bin/makePopc1LyricsIndex -i cache-index.hmd > indexes/popc1-lyrics-index.txt
 	(cd indexes; gzip popc1-lyrics-index.txt)
-
 
 instrument-index-new:
 	@mkdir -p indexes
@@ -279,6 +276,7 @@ instrument-index:
 
 
 composer-index: popc2-composer-index popc1-composer-index
+
 
 popc2-composer-index:
 	-rm -f indexes/popc2-composer-index.aton.gz
@@ -301,7 +299,8 @@ siglum-index:
 
 ##############################
 ##
-## derivatives --
+## derivatives -- MusicXML files are no longer generated with this
+##     make target, so run "make generate-musicxml" to make them.
 ##
 
 derivative: derivatives
@@ -309,7 +308,6 @@ derivatives: other-derivatives
 	bin/makeDerivatives
 
 other-derivatives: regenerate-spreadsheet-new
-
 
 
 ##############################

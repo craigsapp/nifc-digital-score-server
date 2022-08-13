@@ -39,6 +39,10 @@ if (!$forceQ) {
 	unlink("$outputfile.gz");
 }
 
+my $tie = `which tie`;
+chomp $tie;
+die "Error: Cannot locate tie command\n" if $tie =~ /^\s*$/;
+
 my $humdrum2musicxml = `which humdrum2musicxml`;
 chomp $humdrum2musicxml;
 die "ERROR: Cannot locate humdrum2muscxml command\n" if $humdrum2musicxml =~ /^\s*$/;

@@ -24,7 +24,7 @@ my $wget = `which wget`;
 chomp $wget;
 die "Cannot find wget program\n" if $wget =~ /^\s*$/;
 
-my $macroid = "AKfycbyMP0n9of0-T6JilAggBNl3_Dd-_8W1TTsNPhO73SiE6h2Gv0xejtclRY8Jnf2G9O5HZA";
+my $macroid = "AKfycbyO24ZeK-WYDf5UC5YVvsz2AR0vzVc0stn7COaj6oe-Wk3AkcHw8OaR9_zj4y3cQEDGPA";
 my $indexfile;
 Getopt::Long::Configure("bundling");
 GetOptions (
