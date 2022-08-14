@@ -20,7 +20,9 @@ GetOptions (
 	"i|index"    => \$indexfile
 );
 
-$indexfile = "cache-index.hmd" if $indexfile =~ /^\s*$/;
+$indexfile = "cache-index-new.hmd" if $indexfile =~ /^\s*$/;
+$indexfile = "cache-index.hmd" if !-r $indexfile;
+die "Cannot read index file" if !-r $indexfile;
 
 # Cache depth (number of subdirectory levels until file directories).
 my $cacheDepth = 1;

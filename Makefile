@@ -48,6 +48,7 @@ all:
 	@echo "Makefile targets:"
 	@echo "   make kern           -- Create symbolic links to digital scores."
 	@echo "   make update         -- Run \"make kern\" then update cache."
+	@echo "   make update-nohup   -- Run \"make kern\" then update cache in background."
 	@echo "   make count          -- Count the number of linked kern files."
 	@echo
 	@echo " Initializtion targets:";

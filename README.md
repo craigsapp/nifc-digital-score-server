@@ -9,11 +9,13 @@ the data server is running from the URL https://data.nifc.humdrum.org .
 
 ## Primary files ##
 
-The primary data is stored in Humdrum files.  These are initially linked (or
-less preferably copied) to the `./kern` directory).   The [./Makefile](https://github.com/craigsapp/data-nifc/blob/main/Makefile) contains
-a list of the source location for all Humdrum files to be added to the `./kern` directory.    Adjust the `KERNREPOS` variable
-in the Makefile to point to directories in POPC-1 and POPC-2 that contain source Humdrum files that will be managed by 
-the server.
+The primary data is stored in Humdrum files.  These are initially
+linked (or less preferably copied) to the `./kern` directory).   The
+[./Makefile](https://github.com/craigsapp/data-nifc/blob/main/Makefile)
+contains a list of the source location for all Humdrum files to be
+added to the `./kern` directory.    Adjust the `KERNREPOS` variable
+in the Makefile to point to directories in POPC-1 and POPC-2 that
+contain source Humdrum files that will be managed by the server.
 
 
 Then
@@ -262,7 +264,6 @@ chcon -R -t httpd_sys_content_t logs
 ```
 
 And the web server should be made owner of the log directory.
-
 
 
 

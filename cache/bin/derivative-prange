@@ -2,7 +2,7 @@
 #
 # Programmer:    Craig Stuart Sapp <craig.stanford.edu>
 # Creation Date: Sun 06 Mar 2022 05:57:21 PM PST
-# Last Modified: Sun 06 Mar 2022 05:57:24 PM PST
+# Last Modified: Sat Aug 13 21:31:27 CEST 2022
 # Filename:      cache/bin/derivative-prange
 # Syntax:        perl 5
 # vim:           ts=3
@@ -60,12 +60,13 @@ if (!-r "$md5id-prange-attack.pmx.gz") {
 	open (FILE, ">$md5id-prange-attack.pmx") or die "ERROR: Cannot write file $md5id-prange-attack.pmx\n";
 	print FILE $outputAttackPmx;
 	close FILE;
+	unlink("$md5id-prange-attack.pmx.gz");
 	print STDERR "Compressing $md5id-prange-attack.pmx ...";
 	`$gzip $md5id-prange-attack.pmx`;
 	print STDERR " Done.\n";
 }
 
-if (!-r "$md5id-prange-duration.pmx") {
+if (!-r "$md5id-prange-duration.pmx.gz") {
 	my $outputDurationPmx = `$prange -d --score $inputfile`;
 	if ($outputDurationPmx =~ /^\s*$/) {
 		die "$md5id: No data for prange duration pmx content.\n";
@@ -74,6 +75,7 @@ if (!-r "$md5id-prange-duration.pmx") {
 	print FILE $outputDurationPmx;
 	close FILE;
 	print STDERR "Compressing $md5id-prange-duration.pmx ...";
+	unlink("$md5id-prange-duration.pmx.gz");
 	`$gzip $md5id-prange-duration.pmx`;
 	print STDERR " Done.\n";
 }
