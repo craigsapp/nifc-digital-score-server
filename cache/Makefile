@@ -89,6 +89,7 @@ install-scripts:
 ##
 
 index: cache-index
+ci: cache-index
 cache-index:
 	bin/makeCacheIndex > cache-index-new.hmd
 

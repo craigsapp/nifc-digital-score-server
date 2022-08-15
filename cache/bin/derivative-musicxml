@@ -52,10 +52,11 @@ chomp $gzip;
 die "ERROR: Cannot locate gzip command\n" if $gzip =~ /^\s*$/;
 
 
-my $output = `$humdrum2musicxml $inputfile`;
+my $command = "cat $inputfile | $tie -s | $humdrum2musicxml";
+my $output = `$command`;
 
 if ($output =~ /^\s*$/) {
-	die "$md5id: No data content.\n";
+	die "$md5id: No data content. Command: $command\n";
 }
 
 if ($output =~ /Input data is too large/) {

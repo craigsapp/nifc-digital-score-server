@@ -173,6 +173,8 @@ sub processParameters {
 		sendDataContent($format, @md5s);
 	} elsif ($format =~ /^info-(aton|json)/) {
 		sendDataContent($format, @md5s);
+	} elsif ($format =~ /^(aton|json)/) {
+		sendDataContent($format, @md5s);
 	}
 
 	errorMessage("Unknown data format: $format");
@@ -213,6 +215,8 @@ sub sendDataContent {
 	elsif ($format eq "lyrics") {
 		sendLyricsContent($md5s[0]);
 	} elsif ($format =~ /info-(aton|json)/) {
+		sendInfoContent($format, @md5s);
+	} elsif ($format =~ /(aton|json)/) {
 		sendInfoContent($format, @md5s);
 	}
 
@@ -552,7 +556,7 @@ sub sendLyricsContent {
 ##############################
 ##
 ## sendInfoContent -- (Dynamic content) Send basic metadata about a file.  More
-##   Than one file's info is allowed to be send at a time.
+##   Than one file's info is allowed to be sent at a time.
 ##
 
 sub sendInfoContent {
@@ -662,13 +666,15 @@ sub getCacheSubdir {
 ##############################
 ##
 ## getMd5 -- Input an ID and return an MD5 8-hex-digit cache ID.
+##    pmsids are non-unique and multiple MD5s may be returned for
+##    a single pmsid.
 ##
 
 sub getMd5s {
 	my ($cacheIndex, @ids) = @_;
 	my @output;
 	for (my $i=0; $i<@ids; $i++) {
-		$output[@output] = getMd5($cacheIndex, $ids[$i]);
+		push(@output, getMd5($cacheIndex, $ids[$i]));
 	}
 	return @output;
 }
@@ -677,18 +683,38 @@ sub getMd5 {
 	my ($cacheIndex, $id) = @_;
 	open (FILE, $cacheIndex) or errorMessage("Cannot find cache index.");
 	my @headings;
-	while (my $line = <FILE>) {
-		next if $line =~ /^!/;
-		chomp $line;
-		if ($line =~ /^\*\*/) {
-			my @headings = split(/\t+/, $line);
-			next;
+	if ($id =~ /pms:/) {
+		# Multiple IDs possible for PMS IDs since they refer to works
+		# or collections.
+		my @output;
+		while (my $line = <FILE>) {
+			next if $line =~ /^!/;
+			chomp $line;
+			if ($line =~ /^\*\*/) {
+				my @headings = split(/\t+/, $line);
+				next;
+			}
+			next if $line =~ /^\*/;
+			next if $line =~ /^\s*$/;
+			next if $line !~ /^([^\t]+).*\t($id)(\t|$)/;
+			$output[@output] = $1;
 		}
-		next if $line =~ /^\*/;
-		next if $line =~ /^\s*$/;
-		next if $line !~ /^([^\t]+).*\t($id)(\t|$)/;
 		close FILE;
-		return $1;
+		return @output;
+	} else {
+		while (my $line = <FILE>) {
+			next if $line =~ /^!/;
+			chomp $line;
+			if ($line =~ /^\*\*/) {
+				my @headings = split(/\t+/, $line);
+				next;
+			}
+			next if $line =~ /^\*/;
+			next if $line =~ /^\s*$/;
+			next if $line !~ /^([^\t]+).*\t($id)(\t|$)/;
+			close FILE;
+			return ($1);
+		}
 	}
 	close FILE;
 	# Did not find ID in list.  Check to see if it is an md5 ID:
@@ -696,7 +722,7 @@ sub getMd5 {
 		my $cdir = getCacheSubdir($id, $cacheDepth);
 		my $cachedir   = "$basedir/cache";
 		if (-d "$cachedir/$cdir") {
-			return $id;
+			return ($id);
 		}
 	}
 	return "";

@@ -2,7 +2,7 @@
 #
 # Programmer:    Craig Stuart Sapp <craig.stanford.edu>
 # Creation Date: Sat 18 Sep 2021 07:30:52 AM PDT
-# Last Modified: Sat 18 Sep 2021 07:30:55 AM PDT
+# Last Modified: Mon 15 Aug 2022 04:47:45 PM PDT (put 001 type numbers in quotes).
 # Filename:      cache/bin/getInfo
 # Syntax:        perl 5
 # vim:           ts=3
@@ -110,8 +110,16 @@ sub convertToJson {
 		}
 		my $value = $params{$key};
 		if ($value =~ /^\d+$/) {
-			# integer
-			$output .= $value;
+			if ($value =~ /^0$/) {
+				# integer
+				$output .= $value;
+			} elsif ($value =~ /^0/) {
+				# string
+				$output .= "\"$value\"";
+			} else {
+				# integer
+				$output .= $value;
+			}
 		} elsif ($value =~ /^[+-]?\d*\.\d+$/) {
 			# floating-point number
 			$output .= $value;
