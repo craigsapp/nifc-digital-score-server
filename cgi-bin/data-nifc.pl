@@ -666,8 +666,8 @@ sub getCacheSubdir {
 ##############################
 ##
 ## getMd5 -- Input an ID and return an MD5 8-hex-digit cache ID.
-##    pmsids are non-unique and multiple MD5s may be returned for
-##    a single pmsid.
+##    pmsids andrismids are not unique and multiple MD5s may be
+##    returned for a single pmsid.
 ##
 
 sub getMd5s {
@@ -683,9 +683,9 @@ sub getMd5 {
 	my ($cacheIndex, $id) = @_;
 	open (FILE, $cacheIndex) or errorMessage("Cannot find cache index.");
 	my @headings;
-	if ($id =~ /pms:/) {
-		# Multiple IDs possible for PMS IDs since they refer to works
-		# or collections.
+	if (($id =~ /^pms:/) || ($id =~ /^rism:/)) {
+		# Multiple IDs possible for PMS and RISM IDs since they
+		# refer to works or collections.
 		my @output;
 		while (my $line = <FILE>) {
 			next if $line =~ /^!/;
