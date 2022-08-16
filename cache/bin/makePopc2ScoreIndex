@@ -93,6 +93,8 @@ sub prepareEntry {
 	my $siglum = $references{"SMS-siglum"};
 	my $shelfmark = $references{"SMS-shelfmark"};
 	my $shelfwork = $references{"SMS-shelfwork"};
+	my $pmsid   = getPmsId(%references);
+	my $rismid  = getRismId(%references);
 	my $fileid = $references{"!SEGMENT"};
 	$fileid =~ s/\.krn//;
 	$fileid =~ s/_.*//;
@@ -106,6 +108,8 @@ sub prepareEntry {
 	$output .= "\@\@BEGIN:\tENTRY\n";
 	$output .= "\@cenid:\t\t$cenid\n";
 	$output .= "\@fileid:\t$fileid\n";
+	$output .= "\@rismid:\t$rismid\n";
+	$output .= "\@pmsid:\t\t$pmsid\n";
 	$output .= "\@siglum:\t$siglum\n";
 	$output .= "\@shelfmark:\t$shelfmark\n";
 	$output .= "\@shelfwork:\t$shelfwork\n";
@@ -123,6 +127,49 @@ sub prepareEntry {
 	$output .= "\n";
 
 	return $output;
+}
+
+
+
+##############################
+##
+## getPmsId -- Return the PMS (Polish Music Sources).
+##
+## https://polish.musicsources.pl/pl/lokalizacje/galeria/rekopisy/6180
+##
+
+sub getPmsId {
+	my %refs = @_;
+	my $urlscan = $refs{"URL-scan"};
+	if ($urlscan =~ /^\s*$/) {
+		return "";
+	}
+	if ($urlscan =~ /https:\/\/polish.musicsources\.pl\/(?:pl|en|[a-z][a-z])\/lokalizacje\/galeria\/(.)[a-zA-Z_-]*\/(\d+)/) {
+		return "$1$2";
+	}
+
+	return "";
+}
+
+
+
+##############################
+##
+## getRismId -- Return the PMS (Polish Music Sources).
+##
+##
+
+sub getRismId {
+	my %refs = @_;
+	my $nifcrism = $refs{"NIFC-rismSourceID"};
+	if ($nifcrism =~ /^\s*$/) {
+		return "";
+	}
+	if ($nifcrism =~ /^\s*(\d+)\s*$/) {
+		return "$1";
+	}
+
+	return "";
 }
 
 
@@ -264,7 +311,7 @@ sub getIndexCentId {
 
 sub getKeyDesignation {
 	my ($file) = @_;
-	open (FILE, $file) or die "Cannot read file $file\n"; 
+	open (FILE, $file) or die "Cannot read file $file\n";
 	my @contents = <FILE>;
 	close FILE;
 	chomp @contents;
