@@ -43,7 +43,8 @@ deleteTargetKernFiles($targetdir);
 my @dirs = @ARGV;  # Directories that contain *.krn files to link.
 die "Usage: $0 source-directories -t target-directory\n" if @dirs == 0;
 foreach my $srcdir (@dirs) {
-	print "Linking *.krn files from $srcdir into $targetdir\n";
+	next if $targetdir eq $srcdir;
+	print STDERR "Linking *.krn files from $srcdir into $targetdir\n";
 	linkKernFilesInDir($targetdir, $srcdir);
 }
 
