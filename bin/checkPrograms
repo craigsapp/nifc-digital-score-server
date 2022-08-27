@@ -157,6 +157,35 @@ if ($humdrum2musicxml =~ /^\s*$/) {
 
 ##############################
 ##
+## humtr -- Humdrum character translations.
+##
+
+my $humtr = `which humtr`;
+chomp $humtr;
+if ($humtr =~ /^\s*$/) {
+	print "humtr\t\t\tMISSING. Install humlib\n";
+} elsif ($verboseQ) {
+	print "humtr\t\t\tINSTALLED:\t$humtr\n";
+}
+
+
+
+##############################
+##
+## lyrics -- Extract lyrics from Humdrum scores.
+##
+
+my $lyrics = "cache/bin/lyrics";
+if (!-r $lyrics) {
+	print "lyrics\t\t\tMISSING.\n";
+} elsif ($verboseQ) {
+	print "lyrics\t\t\tINSTALLED:\t$lyrics\n";
+}
+
+
+
+##############################
+##
 ## md5sum/md5 -- Needed for creating checksums.
 ##   On macOS the program is called md5, while
 ##   in linux it is called md5sum.

@@ -2,7 +2,7 @@
 #
 # Programmer:    Craig Stuart Sapp <craig.stanford.edu>
 # Creation Date: Sun 12 Sep 2021 07:37:36 PM PDT
-# Last Modified: Sun 17 Oct 2021 12:43:34 AM PDT
+# Last Modified: Sat 27 Aug 2022 12:00:20 PM PDT
 # Filename:      data-nifc/cgi-bin/data-nifc.pl
 # Syntax:        perl 5
 # vim:           ts=3
@@ -34,6 +34,7 @@
 #    Dynamically generated formats:
 #       lyrics    == Extract lyrics HTML page
 #          https://data.nifc.humdrum.org/18xx:100.lyrics
+#          https://data.nifc.humdrum.org/18xx:100.lyrics-modern
 #       info-aton == Basic metadata about the file in ATON format.
 #          https://data.nifc.humdrum.org/18xx:100.aton
 #       info-json == Basic metadata about the file in JSON format.
@@ -70,14 +71,12 @@ my $cacheDepth = 1;
 # Dynamic data generation programs
 #
 # For SELinux, run these commands on the scripts to allow this CGI script to run them:
-#    chcon system_u:object_r:httpd_exec_t:s0 lyrics
 #    chcon system_u:object_r:httpd_exec_t:s0 getInfo
 # And one time, give permission for this CGI script to run command in OS:
 #    setsebool -P httpd_execmem 1
 # Use the -Z option on ls to see the SELinux permissions:
-#    ls -Z lyrics
+#    ls -Z getInfo
 #
-my $lyrics	= "$basedir/bin/lyrics";    # for "lyrics" format
 my $getInfo	= "$basedir/bin/getInfo";   # for basic medatadata about a file.
 
 ##
@@ -166,12 +165,14 @@ sub processParameters {
 		sendDataContent($format, @md5s);
 	} elsif ($format eq "midi") {
 		sendDataContent("midi", @md5s);
+	} elsif ($format eq "lyrics") {
+		sendDataContent("lyrics", @md5s);
+	} elsif ($format eq "lyrics-modern") {
+		sendDataContent("lyrics-modern", @md5s);
 	}
 
 	# dynamic formats
-	elsif ($format eq "lyrics") {
-		sendDataContent($format, @md5s);
-	} elsif ($format =~ /^info-(aton|json)/) {
+	elsif ($format =~ /^info-(aton|json)/) {
 		sendDataContent($format, @md5s);
 	} elsif ($format =~ /^(aton|json)/) {
 		sendDataContent($format, @md5s);
@@ -209,6 +210,10 @@ sub sendDataContent {
 		sendMidiContent($md5s[0]);
 	} elsif ($format eq "midi") {
 		sendMidiContent($md5s[0]);
+	} elsif ($format eq "lyrics") {
+		sendLyricsContent($md5s[0]);
+	} elsif ($format eq "lyrics-modern") {
+		sendLyricsModernContent($md5s[0]);
 	}
 
 	# Dynamically generated data formats:
@@ -524,6 +529,83 @@ sub sendMidiContent {
 }
 
 
+
+##############################
+##
+## sendLyricsContent -- Extract lyrics from score and serve as HTML file.
+##
+
+sub sendLyricsContent {
+	my ($md5) = @_;
+	my $cdir = getCacheSubdir($md5, $cacheDepth);
+	my $format = "-lyrics.txt";
+	my $mime = "text/plain";
+
+	# Lyrics data is stored in gzip-compressed file.  If the browser
+	# accepts gzip compressed data, send the compressed form of the data;
+	# otherwise, unzip and send as plain text.
+	my $compressQ = 0;
+	$compressQ = 1 if $ENV{'HTTP_ACCEPT_ENCODING'} =~ /\bgzip\b/;
+	if (!-r "$cachedir/$cdir/$md5$format.gz") {
+		errorMessage("Lyrics file is missing for $OPTIONS{'id'}.");
+	}
+	if ($compressQ) {
+		my $data = `cat "$cachedir/$cdir/$md5$format.gz"`;
+		print "Content-Type: $mime$newline";
+		print "Content-Type: $mime;charset=UTF-8$newline";
+		print "Content-Encoding: gzip$newline";
+		print "$newline";
+		print $data;
+		exit(0);
+	}
+
+	my $data = `zcat "$cachedir/$cdir/$md5$format.gz"`;
+	print "Content-Type: $mime;charset=UTF-8$newline";
+	print "$newline";
+	print $data;
+	exit(0);
+}
+
+
+
+##############################
+##
+## sendLyricsModernContent -- Extract modernized-character lyrics from score
+##    and serve as HTML file.
+##
+
+sub sendLyricsModernContent {
+	my ($md5) = @_;
+	my $cdir = getCacheSubdir($md5, $cacheDepth);
+	my $format = "-lyrics-modern.txt";
+	my $mime = "text/plain";
+
+	# Lyrics data is stored in gzip-compressed file.  If the browser
+	# accepts gzip compressed data, send the compressed form of the data;
+	# otherwise, unzip and send as plain text.
+	my $compressQ = 0;
+	$compressQ = 1 if $ENV{'HTTP_ACCEPT_ENCODING'} =~ /\bgzip\b/;
+	if (!-r "$cachedir/$cdir/$md5$format.gz") {
+		errorMessage("Lyrics file is missing for $OPTIONS{'id'}.");
+	}
+	if ($compressQ) {
+		my $data = `cat "$cachedir/$cdir/$md5$format.gz"`;
+		print "Content-Type: $mime$newline";
+		print "Content-Type: $mime;charset=UTF-8$newline";
+		print "Content-Encoding: gzip$newline";
+		print "$newline";
+		print $data;
+		exit(0);
+	}
+
+	my $data = `zcat "$cachedir/$cdir/$md5$format.gz"`;
+	print "Content-Type: $mime;charset=UTF-8$newline";
+	print "$newline";
+	print $data;
+	exit(0);
+}
+
+
 ##
 ## End of static content delivery functions.
 ##
@@ -531,26 +613,6 @@ sub sendMidiContent {
 ##
 ## Dynamic content delivery functions:
 ##
-
-
-##############################
-##
-## sendLyricsContent -- (Dynamic content) Extract lyrics from score and serve as HTML file.
-##   Later change to HTML content without wrapping in full HTML file.
-##
-
-sub sendLyricsContent {
-	my ($md5) = @_;
-	my $cdir = getCacheSubdir($md5, $cacheDepth);
-	my $command = "$lyrics -hbv \"$cachedir/$cdir/$md5.krn\"";
-	my $data = `$command`;
-	print "Content-Type: text/html;charset=UTF-8$newline";
-	print "Content-Disposition: inline; filename=\"$OPTIONS{'id'}-lyrics.html\"$newline";
-	print "$newline";
-	print $data;
-	exit(0);
-}
-
 
 
 ##############################
