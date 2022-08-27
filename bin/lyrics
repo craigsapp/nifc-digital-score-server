@@ -23,7 +23,7 @@
 use strict;
 use Getopt::Long;
 
-my $extractx = `which extract`;
+my $extractx = `which extractx`;
 chomp $extractx;
 die "Cannot find extractx tool" if $extractx =~ /^\s*$/;
 
