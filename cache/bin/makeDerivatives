@@ -2,7 +2,7 @@
 #
 # Programmer:    Craig Stuart Sapp <craig.stanford.edu>
 # Creation Date: Sun Sep 12 11:26:56 PDT 2021
-# Last Modified: Wed 22 Sep 2021 07:55:06 PM PDT
+# Last Modified: Sun 28 Aug 2022 01:35:20 AM PDT
 # Filename:      cache/bin/makeDerivatives
 # Syntax:        perl 5
 # vi:            ts=3
@@ -24,6 +24,7 @@
 #                     specific derivative given, then prepare all
 #                     derivatives.  Allowed derivative types:
 #                        mei      == Create MEI file (using verovio)
+#                        musedata == Create Musedata file (using humextra's hum2muse)
 #                        musicxml == Create MusicXML file (using converter21)
 #                        midi     == Create MIDI file (using hum2mid)
 #                        keyscape == Create keyscape plot images (using mkeyscape and convert)
@@ -64,7 +65,7 @@ $groups = "0123456789abcdef" if $groups =~ /^\s*$/;
 $groups = reverse($groups) if $reverseQ;
 
 # musicxml removed from the all option [20220813]
-$derivatives = "mei,midi,keyscape,prange,incipit,thema,wordlist" if $derivatives =~ /^\s*$/;
+$derivatives = "mei,midi,musedata,keyscape,prange,incipit,thema,wordlist" if $derivatives =~ /^\s*$/;
 $derivatives =~ s/^[^0-9a-zA-Z_-]+//;
 $derivatives =~ s/[^0-9a-zA-Z_-]+$//;
 my @derivativeList = split (/[^0-9a-zA-Z_-]+/, $derivatives);

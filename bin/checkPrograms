@@ -52,13 +52,28 @@ if ($atondata ne '{"A":"a"}') {
 
 ##############################
 ##
+## autostem -- Used for creating automatic stem directions.
+##
+
+my $autostem = `which autostem`;
+chomp $autostem;
+if ($autostem =~ /^\s*$/) {
+	print "autostem\t\tMISSING. Install humlib\n";
+} elsif ($verboseQ) {
+	print "autostem\t\tINSTALLED:\t$autostem\n";
+}
+
+
+
+##############################
+##
 ## chord -- Used for creating pitch search index.
 ##
 
 my $chord = `which chord`;
 chomp $chord;
 if ($chord =~ /^\s*$/) {
-	print "chord\t\tMISSING. Install humlib\n";
+	print "chord\t\t\tMISSING. Install humlib\n";
 } elsif ($verboseQ) {
 	print "chord\t\t\tINSTALLED:\t$chord\n";
 }
@@ -121,6 +136,21 @@ if ($hum2mid =~ /^\s*$/) {
 	print "hum2mid\t\tMISSING. Install humextra\n";
 } elsif ($verboseQ) {
 	print "hum2mid\t\t\tINSTALLED:\t$hum2mid\n";
+}
+
+
+
+##############################
+##
+## hum2muse -- Used for creating automatic stem directions.
+##
+
+my $hum2muse = `which hum2muse`;
+chomp $hum2muse;
+if ($hum2muse =~ /^\s*$/) {
+	print "hum2muse\t\tMISSING. Install humextra\n";
+} elsif ($verboseQ) {
+	print "hum2muse\t\tINSTALLED:\t$hum2muse\n";
 }
 
 

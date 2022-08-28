@@ -354,6 +354,26 @@ erase-mei:
 	bin/eraseDerivatives -d mei
 
 
+
+##############################
+##
+## Musedata conversions.
+##
+
+generate-musedata:
+	bin/makeDerivatives -v -d musedata
+
+regenerate-musedata:
+	bin/makeDerivatives -f -d musedata
+
+missing-musedata:
+	@bin/listMissingDerivatives -d musedata -mcf
+
+erase-musedata:
+	bin/eraseDerivatives -d musedata
+
+
+
 ##############################
 ##
 ## MusicXML conversions.
