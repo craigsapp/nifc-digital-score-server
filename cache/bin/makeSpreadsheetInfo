@@ -152,10 +152,10 @@ sub addFlagInformation {
 	}
 	my $output = "";
 
-	my $modernQ  = "";
 	my $iiifQ    = "";
-	my $textQ    = "";
+	my $modernQ  = "";
 	my $singleQ  = "";
+	my $textQ    = "";
 
 	my $hasXywh = 0;
 	my $hasIiif = 0;
@@ -188,13 +188,13 @@ sub addFlagInformation {
 		$singleQ = "S";
 	}
 
-	# T = has text (lyrics)
 	# I = has IIIF encodings (bounding boxes and IIIF manifest)
 	# i = has incomplete IIIF encodings (bounding boxes or IIIF manifest)
 	# M = has modern filter
 	# S = has non-splitting spines (simple voices)  This should be refined
 	# 	   so that only **kern spines are checked for split.
-	$output = "\@flags:\t\t\t$textQ$iiifQ$modernQ$singleQ\n";
+	# T = has text (lyrics)
+	$output = "\@flags:\t\t\t$iiifQ$modernQ$singleQ$textQ\n";
 
 	return $output;
 }

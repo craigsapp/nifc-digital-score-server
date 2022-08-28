@@ -98,6 +98,7 @@ sub prepareEntry {
 	my $fileid = $references{"!SEGMENT"};
 	$fileid =~ s/\.krn//;
 	$fileid =~ s/_.*//;
+	my $flags = getFlags("$sourcedir/$md5-spreadsheet.aton");
 
 	return if $fileid =~ /^s-/;
 
@@ -123,10 +124,34 @@ sub prepareEntry {
 	$output .= "\@key:\t\t$key\n";
 	$output .= "\@notecount:\t$notecount\n";
 	$output .= "\@lastedit:\t$edit\n";
+	$output .= "\@flags:\t\t$flags\n";
 	$output .= "\@\@END:\t\tENTRY\n";
 	$output .= "\n";
 
 	return $output;
+}
+
+
+
+##############################
+##
+## getFlags --
+##
+
+sub getFlags {
+	my ($file) = @_;
+	open (SFILE, $file) or return "";
+	my @contents = <SFILE>;
+	chomp @contents;
+	close SFILE;
+	for (my $i=@contents-1; $i>=0; $i--) {
+		# more likely to be at end of spreadsheet info
+		my $line = $contents[$i];
+		if ($line =~ /^\@flags:\s*(.*)\s*$/) {
+			return $1;
+		}
+	}
+	return "";
 }
 
 

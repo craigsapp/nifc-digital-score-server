@@ -27,7 +27,7 @@ all:
 	@echo "make copy-kern   == Copy files from kern directory to cache using cache-index-new.hmd."
 	@echo "make recopy-kern == Copy files from kern directory to cache using cache-index.hmd."
 	@echo "make derivatives == Run analyses for new files."
-	@echo "make indexes     == Create cached indexes before publication."
+	@echo "make indexes     == Create cached indexes after publication."
 	@echo "make indexes-new == Create cached indexes before publication."
 	@echo "make publish     == Activate the index for the new set of files. (Move cache-index-new.hmd to cache-index.hmd)"
 	@echo "make purge       == Remove files no longer in index."
