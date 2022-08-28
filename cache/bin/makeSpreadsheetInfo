@@ -32,14 +32,18 @@ GetOptions (
    'm|macroid=s' => \$macroid
 );
 
+$indexfile = "cache-index-new.hmd" if $indexfile =~ /^\s*$/;
+if (!-r $indexfile) {
+	$indexfile = "cache-index.hmd";
+}
+
+my %index = getCentToMd5Index($indexfile);
+
 my $sheeturl = "https://script.google.com/macros/s/$macroid/exec?format=aton&lang=en";
 my %entriesByCentid = getEntriesByCentid($sheeturl);
 
-$indexfile = "cache-index.hmd" if $indexfile =~ /^\s*$/;
-my %index = getCentToMd5Index($indexfile);
-
-foreach my $centid (sort keys %index) {
-	createSpreadsheetFile($centid, $index{$centid});
+foreach my $cenid (sort keys %index) {
+	createSpreadsheetFile($cenid, $index{$cenid});
 }
 
 exit(0);
@@ -53,11 +57,11 @@ exit(0);
 ##
 
 sub createSpreadsheetFile {
-	my ($centid, $md5) = @_;
+	my ($cenid, $md5) = @_;
 	my $targetdir = getTargetDir($md5, $cacheDepth);
 
 	die" Cannot find directory $targetdir\n" if !-d $targetdir;
-	my $entry = $entriesByCentid{$centid};
+	my $entry = $entriesByCentid{$cenid};
 	return if $entry =~ /^\s*$/;
 
 	print "Creating $targetdir/$md5-spreadsheet.aton\n";
@@ -94,7 +98,8 @@ sub createSpreadsheetFile {
 ## @Warnings:
 ## @Filename:
 ## @sheet:			1700
-## @centid:		17xx:1753
+## @cenid:		17xx:1753
+## @flags:	TIM
 ## @lang:			en
 ## @@END: ENTRY
 ##
@@ -105,20 +110,21 @@ sub getEntriesByCentid {
 	my @contents = `$command`;
 	my %output;
 	my $entry;
-	my $centid;
+	my $cenid;
 	for (my $i=0; $i<@contents; $i++) {
 		my $line = $contents[$i];
 		chomp $line;
 		if ($line =~ /^\@\@BEGIN\s*:\s*ENTRY\s*$/) {
 			$entry = "";
-			$centid = "";
+			$cenid = "";
 			next;
 		}
 		if ($line =~ /^\@\@END\s*:\s*ENTRY\s*$/) {
-			if ($centid !~ /^\s*$/) {
-				$output{$centid} = $entry;
+			$entry .= addFlagInformation($index{$cenid}, $cenid);
+			if ($cenid !~ /^\s*$/) {
+				$output{$cenid} = $entry;
 			}
-			$centid = "";
+			$cenid = "";
 			$entry = "";
 			next;
 		}
@@ -126,10 +132,71 @@ sub getEntriesByCentid {
 		next if $line =~ /^\@lang\s*:/;
 		$entry .= "$line\n";
 		if ($line =~ /^\@cent?id\s*:\s*(.*)\s*$/i) {
-			$centid = $1;
+			$cenid = $1;
 		}
 	}
 	return %output;
+}
+
+
+
+##############################
+##
+## addFlagInformation --
+##
+
+sub addFlagInformation {
+	my ($md5sum, $cenid) = @_;
+	if ($md5sum =~ /^\s*$/) {
+		return "!!!flags:\n";
+	}
+	my $output = "";
+
+	my $modernQ  = "";
+	my $iiifQ    = "";
+	my $textQ    = "";
+	my $singleQ  = "";
+
+	my $hasXywh = 0;
+	my $hasIiif = 0;
+	my $hasMultiple = 0;
+
+	$md5sum =~ /^([0-9a-f])/;
+	my $prefix = $1;
+	my $file = "$1/$md5sum/$md5sum.krn";
+	open(HFILE, $file) or die "Cannot read $file\n";
+	my @contents = <HFILE>;
+	close @contents;
+	chomp @contents;
+	foreach my $line (@contents) {
+		$hasMultiple = 1 if $line =~ /\*\^/;
+		$hasXywh = 1     if $line =~ /^\*.*xywh/;
+		$hasIiif = 1     if $line =~ /^!!!IIIF/;
+		$textQ   = "T"   if $line =~ /^\*\*.*text/;
+		$modernQ = "M"   if $line =~ /^!!!filter-modern:/;
+	}
+
+	if ($hasXywh && $hasIiif) {
+		$iiifQ = "I";
+	} elsif ($hasXywh) {
+		$iiifQ = "i";
+	} elsif ($hasXywh) {
+		$iiifQ = "i";
+	}
+
+	if (!$hasMultiple) {
+		$singleQ = "S";
+	}
+
+	# T = has text (lyrics)
+	# I = has IIIF encodings (bounding boxes and IIIF manifest)
+	# i = has incomplete IIIF encodings (bounding boxes or IIIF manifest)
+	# M = has modern filter
+	# S = has non-splitting spines (simple voices)  This should be refined
+	# 	   so that only **kern spines are checked for split.
+	$output = "\@flags:\t\t\t$textQ$iiifQ$modernQ$singleQ\n";
+
+	return $output;
 }
 
 
@@ -146,7 +213,7 @@ sub getCentToMd5Index {
 	chomp @contents;
 	close FILE;
 	my $md5Index    = -1;
-	my $centidIndex = -1;
+	my $cenidIndex = -1;
 	my $exinterp = 0;
 	my %output;
 	for (my $i=0; $i<@contents; $i++) {
@@ -158,21 +225,22 @@ sub getCentToMd5Index {
 			my @fields = split(/\t+/, $line);
 			for (my $j=0; $j<@fields; $j++) {
 				$md5Index    = $j if $fields[$j] eq "**md5";
-				$centidIndex = $j if $fields[$j] eq "**cenid";
+				$cenidIndex = $j if $fields[$j] eq "**cenid";
 			}
 			next;
 		}
 		next if $line =~ /^\*/;
 		next if !$exinterp;
 		die "Cannot find MD5 column in index file\n" if $md5Index < 0;
-		die "Cannot find Century ID column in index file\n" if $centidIndex < 0;
+		die "Cannot find Century ID column in index file\n" if $cenidIndex < 0;
 		my @fields = split(/\t+/, $line);
-		my $centid = $fields[$centidIndex];
-		next if $centid =~ /^\s*$/;
-		next if $centid eq ".";
+		my $cenid = $fields[$cenidIndex];
+		next if $cenid =~ /^\s*$/;
+		next if $cenid eq ".";
 		my $md5 = $fields[$md5Index];
-		$output{$centid} = $md5;
+		$output{$cenid} = $md5;
 	}
+
 	return %output;
 }
 
