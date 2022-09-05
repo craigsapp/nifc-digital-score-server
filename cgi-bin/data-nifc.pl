@@ -743,7 +743,7 @@ sub getMd5s {
 
 sub getMd5 {
 	my ($cacheIndex, $id) = @_;
-	open (FILE, $cacheIndex) or errorMessage("Cannot find cache index.");
+	open (FILE, $cacheIndex) or errorMessage("Cannot find cache index $cacheIndex.");
 	my @headings;
 	if (($id =~ /^pms:/) || ($id =~ /^rism:/)) {
 		# Multiple IDs possible for PMS and RISM IDs since they
@@ -892,7 +892,7 @@ sub sendRandomWork {
 
 sub getMd5List {
 	my ($cacheIndex) = @_;
-	open (FILE, $cacheIndex) or errorMessage("Cannot find cache index.");
+	open (FILE, $cacheIndex) or errorMessage("Cannot find cache index $cacheIndex for MD5list.");
 	my @headings;
 	my @output;
 	my $md5index = -1;

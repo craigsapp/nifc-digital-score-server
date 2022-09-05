@@ -11,8 +11,11 @@
 CGIBIN = /var/www/cgi-bin
 
 all:
+	rm $(CGIBIN)/data-nifc
 	cp data-nifc.pl $(CGIBIN)/data-nifc
 	chmod 0755	$(CGIBIN)/data-nifc
+	# semanage fcontext -a -t httpd_sys_script_exec_t /var/www/cgi-bin/data-nifc
+	restorecon /var/www/cgi-bin/data-nifc
 
 
 
