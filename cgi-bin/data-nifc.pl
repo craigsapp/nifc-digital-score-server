@@ -2,7 +2,7 @@
 #
 # Programmer:    Craig Stuart Sapp <craig.stanford.edu>
 # Creation Date: Sun 12 Sep 2021 07:37:36 PM PDT
-# Last Modified: Sat 27 Aug 2022 12:00:20 PM PDT
+# Last Modified: Mon 05 Sep 2022 05:09:02 AM PDT
 # Filename:      data-nifc/cgi-bin/data-nifc.pl
 # Syntax:        perl 5
 # vim:           ts=3
@@ -140,42 +140,53 @@ sub processParameters {
 	my @ids = split(/[^0-9a-zA-Z:_-]+/, $id);
 
 	my @md5s = getMd5s($cacheIndex, @ids);
-	errorMessage("Entry for $id was not found.") if @md5s < 1;
+	if (@md5s < 1) {
+		if (($id =~ /^rism/i) && ($format =~ /json/i)) {
+			# Send an empty JSON object if rism number is unknown:
+			my $mime = "application/json" if $format eq "json";
+			my $charset = ";charset=UTF-8";
+			print "Content-Type: $mime$charset$newline";
+			print "$newline";
+			print "[]$newline";
+			exit(0);
+		} 
+		errorMessage("Entry for $id :: $format was not found.") if @md5s < 1;
+	}
 
 	# cached formats
 	if ($format eq "krn") {
-		sendDataContent($format, @md5s);
+		sendDataContent($format, $id, @md5s);
 	} elsif ($format eq "mei") {
-		sendDataContent($format, @md5s);
+		sendDataContent($format, $id, @md5s);
 	} elsif ($format eq "musicxml") {
-		sendDataContent($format, @md5s);
+		sendDataContent($format, $id, @md5s);
 	} elsif ($format eq "incipit") {
-		sendDataContent($format, @md5s);
+		sendDataContent($format, $id, @md5s);
 	} elsif ($format eq "keyscape-abspre") {
-		sendDataContent($format, @md5s);
+		sendDataContent($format, $id, @md5s);
 	} elsif ($format eq "keyscape-relpre") {
-		sendDataContent($format, @md5s);
+		sendDataContent($format, $id, @md5s);
 	} elsif ($format eq "keyscape-abspost") {
-		sendDataContent($format, @md5s);
+		sendDataContent($format, $id, @md5s);
 	} elsif ($format eq "keyscape-relpost") {
-		sendDataContent($format, @md5s);
+		sendDataContent($format, $id, @md5s);
 	} elsif ($format eq "keyscape-info") {
-		sendDataContent($format, @md5s);
+		sendDataContent($format, $id, @md5s);
 	} elsif ($format eq "mid") {
-		sendDataContent($format, @md5s);
+		sendDataContent($format, $id, @md5s);
 	} elsif ($format eq "midi") {
-		sendDataContent("midi", @md5s);
+		sendDataContent("midi", $id, @md5s);
 	} elsif ($format eq "lyrics") {
-		sendDataContent("lyrics", @md5s);
+		sendDataContent("lyrics", $id, @md5s);
 	} elsif ($format eq "lyrics-modern") {
-		sendDataContent("lyrics-modern", @md5s);
+		sendDataContent("lyrics-modern", $id, @md5s);
 	}
 
 	# dynamic formats
 	elsif ($format =~ /^info-(aton|json)/) {
-		sendDataContent($format, @md5s);
+		sendDataContent($format, $id, @md5s);
 	} elsif ($format =~ /^(aton|json)/) {
-		sendDataContent($format, @md5s);
+		sendDataContent($format, $id, @md5s);
 	}
 
 	errorMessage("Unknown data format: $format");
@@ -189,7 +200,7 @@ sub processParameters {
 ##
 
 sub sendDataContent {
-	my ($format, @md5s) = @_;
+	my ($format, $id, @md5s) = @_;
 	errorMessage("Not in cache ") if @md5s < 1;
 	errorMessage("Bad MD5 tag $md5s[0]") if $md5s[0] !~ /^[0-9a-f]{8}$/;
 
@@ -220,9 +231,9 @@ sub sendDataContent {
 	elsif ($format eq "lyrics") {
 		sendLyricsContent($md5s[0]);
 	} elsif ($format =~ /info-(aton|json)/) {
-		sendInfoContent($format, @md5s);
+		sendInfoContent($format, $id, @md5s);
 	} elsif ($format =~ /(aton|json)/) {
-		sendInfoContent($format, @md5s);
+		sendInfoContent($format, $id, @md5s);
 	}
 
 	errorMessage("Unknown data format B: $format");
@@ -622,10 +633,14 @@ sub sendLyricsModernContent {
 ##
 
 sub sendInfoContent {
-	my ($format, @md5s) = @_;
+	my ($format, $id, @md5s) = @_;
 
 	my $output = "";
-	$output .= "[\n" if (@md5s > 1) && ($format =~ /json/i);
+	if (($id =~ /rism/) && ($format =~ /json/i)) {
+		$output .= "[\n";
+	} else {
+		$output .= "[\n" if (@md5s > 1) && ($format =~ /json/i);
+	}
 
 	my $debug = "";
 	for (my $i=0; $i<@md5s; $i++) {
@@ -645,7 +660,11 @@ sub sendInfoContent {
 		$output .= $data;
 	}
 
-	$output .= "]\n" if (@md5s > 1) && ($format =~ /json/i);
+	if (($id =~ /rism/) && ($format =~ /json/i)) {
+		$output .= "[\n";
+	} else {
+		$output .= "]\n" if (@md5s > 1) && ($format =~ /json/i);
+	}
 
 	my $mime = "text/x-aton";
 	$mime = "application/json" if $format =~ /json/i;
@@ -728,7 +747,7 @@ sub getCacheSubdir {
 ##############################
 ##
 ## getMd5 -- Input an ID and return an MD5 8-hex-digit cache ID.
-##    pmsids andrismids are not unique and multiple MD5s may be
+##    pmsids and rismids are not unique and multiple MD5s may be
 ##    returned for a single pmsid.
 ##
 
@@ -880,7 +899,8 @@ sub sendRandomWork {
 	}
 	my $randIndex =  int(rand(@list));
 	my $md5 = $list[$randIndex];
-	sendDataContent($md5, $format);
+	my $id = "";
+	sendDataContent($md5, $id, $format);
 }
 
 
