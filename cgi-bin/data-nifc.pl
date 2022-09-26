@@ -661,7 +661,7 @@ sub sendInfoContent {
 	}
 
 	if (($id =~ /rism/) && ($format =~ /json/i)) {
-		$output .= "[\n";
+		$output .= "]\n";
 	} else {
 		$output .= "]\n" if (@md5s > 1) && ($format =~ /json/i);
 	}
