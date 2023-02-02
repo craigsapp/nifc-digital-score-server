@@ -168,10 +168,10 @@ server is placed in its final location).
 <dd> Use SQL enumeration to access data, with embedded format. (not yet implemented) </dd>
 
 <dt> <a href="https://data.nifc.humdrum.org/random">https://data.nifc.humdrum.org/random</a> </dt>
-<dd> Get a random Humdrum file. </dd>
+<dd> Get a random Humdrum file. (not implemented?) </dd>
 
 <dt> <a href="https://data.nifc.humdrum.org/random.musicxml">https://data.nifc.humdrum.org/random.musicxml</a> </dt>
-<dd> Get a random MusicXML conversion. </dd>
+<dd> Get a random MusicXML conversion. (not implemented?) </dd>
 
 </dl>
 
