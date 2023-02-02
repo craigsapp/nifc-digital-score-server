@@ -2,8 +2,8 @@ Data server for https://humdrum.nifc.pl
 ===========================================
 
 This repository contains the files for the https://humdrum.nifc.pl website
-that serves score data files for POPC-1 and POPC-2 projects at NIFC.  Currently
-the data server is running from the URL https://data.nifc.humdrum.org .
+that serves score data files for POPC-1 and POPC-2 projects at NIFC.  A mirror
+of the data server is also running from the URL https://data.nifc.humdrum.org .
 
 
 
@@ -165,10 +165,12 @@ server is placed in its final location).
 
 ## Setup ##
 
+See also https://bit.ly/polishscores-maintenance
+
 
 ### Apache web server ###
 
-An example Apache web server configuration is given in [cgi-bin/apache.config](https://github.com/craigsapp/data-nifc/blob/main/cgi-bin/apache.config).  The important part of the configuration is:
+An example Apache web server configuration is given in [cgi-bin/apache.config](https://github.com/craigsapp/nifc-digital-scores-server/blob/main/cgi-bin/apache.config).  The important part of the configuration is:
 
 ```apache
 RewriteEngine On
