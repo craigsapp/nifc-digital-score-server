@@ -260,8 +260,8 @@ which should reply `/usr/local/bin/aton2json`
 
 ## SELinux notes ##
 
-To allow CGI scripts to run programs in a shell, turn on the general permission with
-the command:
+To allow CGI scripts to run programs in a shell when [SELinux](https://en.wikipedia.org/wiki/Security-Enhanced_Linux), 
+turn on the general permission with the command:
 
 ```bash
 setsebool -P httpd_execmem 1
