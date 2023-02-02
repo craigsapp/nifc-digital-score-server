@@ -102,11 +102,19 @@ to remove older and deleted versions of the Humdrum files from the cache
 system.   These files will be placed in the `./cache/purge` folder for review.
 
 
-There is also a command to do all of the above steps at one time:
+There is also a command to do all of the above steps at one time (except purging)
+in the base directory:
 
 ```bash
 make update
 ```
+
+Or to run the update process in the backgroud using `nohup`:
+
+```bash
+make un
+```
+
 
 ## URL data access ##
 
