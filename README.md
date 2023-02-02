@@ -29,7 +29,13 @@ Creates symbolic links from the source locations into the `./kern`
 directory.  Once links to Humdrum files are in the `./kern` directory,
 the caching process can begin.
 
+This data server is designed to manage digital scores from the POPC1 and POPC2
+projects of the [Fryderyk Chopin Institute](https://nifc.pl):
 
+| Project | Repository |
+| --- | --- |
+| POPC1 | https://github.com/pl-wnifc/humdrum-chopin-first-editions |
+| POPC2 | https://github.com/pl-wnifc/humdrum-polish-scores |
 
 ## Cache preparation ##
 
