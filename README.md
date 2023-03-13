@@ -127,9 +127,9 @@ https://data.nifc.humdrum.org (useful if the main server is down).
 <dl markdown="1">
 
 <dt> 
-<a href="https://humdrum.nifc.pl/pl-cz--iii-183">https://humdrum.nifc.pl/pl-cz--iii-183</a> 
+<a href="https://humdrum.nifc.pl/pl-cz--iii-183">https://humdrum.nifc.pl/pl-cz--iii-183</a> (primary server)
 <br>
-<a href="https://data.nifc.humdrum.org/pl-cz--iii-183">https://data.nifc.humdrum.org/pl-cz--iii-183</a> (mirror)
+<a href="https://data.nifc.humdrum.org/pl-cz--iii-183">https://data.nifc.humdrum.org/pl-cz--iii-183</a> (mirror server)
 </dt>
 <dd markdown="1"> Return Humdrum data for Sigla/Shelfmark ID `pl-cz--iii-183`. </dd>
 
