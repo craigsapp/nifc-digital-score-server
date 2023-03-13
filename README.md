@@ -123,6 +123,8 @@ Data and analysis files stored in the cache directory can be
 accessed on the web via the following example URLs.  The primary
 data server is at https://humdrum.nifc.pl, with a mirror server at
 https://data.nifc.humdrum.org (useful if the main server is down).
+The files in this repository can also be downloaded to use as
+additional mirrors of the data server.
 
 <dl markdown="1">
 
