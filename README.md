@@ -168,12 +168,6 @@ additional mirrors of the data server.
 <dt> <a href="https://humdrum.nifc.pl/18xx:25?format=mei">https://humdrum.nifc.pl/18xx:25?format=mei</a> </dt>
 <dd> Use century enumeration to access MEI conversion using format parameter. </dd>
 
-<dt> <a href="https://humdrum.nifc.pl/1153">https://humdrum.nifc.pl/1153</a> </dt>
-<dd> Use SQL enumeration to access data. (not yet implemented) </dd>
-
-<dt> <a href="https://humdrum.nifc.pl/1153.krn">https://humdrum.nifc.pl/1153.krn</a> </dt>
-<dd> Use SQL enumeration to access data, with embedded format. (not yet implemented) </dd>
-
 <dt> <a href="https://humdrum.nifc.pl/random">https://humdrum.nifc.pl/random</a> </dt>
 <dd> Get a random Humdrum file. (not implemented?) </dd>
 
