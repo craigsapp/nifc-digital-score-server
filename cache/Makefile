@@ -292,8 +292,8 @@ popc1-composer-index:
 siglum-index:
 	-rm -f indexes/siglum-index.aton.gz
 	-rm -f indexes/siglum-index.json.gz
-	wget "https://script.google.com/macros/s/AKfycbyCYdG0G1mlr-EyN498pmM3w5OD967frNkdHN2JJaWe53LQEriPk79fZ0Ycc8iZq_DsVw/exec?format=json" -O indexes/siglum-index.json
-	wget "https://script.google.com/macros/s/AKfycbyCYdG0G1mlr-EyN498pmM3w5OD967frNkdHN2JJaWe53LQEriPk79fZ0Ycc8iZq_DsVw/exec?format=aton" -O indexes/siglum-index.aton
+	wget "https://script.google.com/macros/s/AKfycbyU-HOlZUia8oMVS3jcIwUpZ5kneM23uJDF_aFtXib6UgNnybNVpSV3ozd72SiP8aVz8w/exec?format=json" -O indexes/siglum-index.json
+	wget "https://script.google.com/macros/s/AKfycbyU-HOlZUia8oMVS3jcIwUpZ5kneM23uJDF_aFtXib6UgNnybNVpSV3ozd72SiP8aVz8w/exec?format=aton" -O indexes/siglum-index.aton
 	(cd indexes; gzip siglum-index.aton)
 	(cd indexes; gzip siglum-index.json)
 
