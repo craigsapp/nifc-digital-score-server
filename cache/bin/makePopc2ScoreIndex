@@ -100,8 +100,6 @@ sub prepareEntry {
 	$fileid =~ s/_.*//;
 	my $flags = getFlags("$sourcedir/$md5-spreadsheet.aton");
 
-	return if $fileid =~ /^s-/;
-
 	$CNT = "undetermined" if $CNT =~ /^\s*$/;
 	$AGN = "uncategorized" if $AGN =~ /^\s*$/;
 

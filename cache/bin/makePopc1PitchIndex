@@ -37,8 +37,13 @@ my %index = getIndex($indexfile);
 
 foreach my $key (sort keys %index) {
 	my $value = $index{$key};
-	next if $value =~ /^pl-/;  # POPC2 scores from Poland
-	next if $value =~ /^s-/;   # POPC2 scores from Sweden
+	next if $fileid =~ /^pl-/;   # ignore for POPC1 scores if from Poland
+	next if $fileid =~ /^s-/;    # ignore for POPC1 scores if from Sweden
+	next if $fileid =~ /^d-/;    # ignore for POPC1 scores if from Germany
+	next if $fileid =~ /^f-/;    # ignore for POPC1 scores if from France
+	next if $fileid =~ /^i-/;    # ignore for POPC1 scores if from Italy
+	next if $fileid =~ /^sk-/;   # ignore for POPC1 scores if from Slovakia
+	next if $fileid =~ /^cz-/;   # ignore for POPC1 scores if from Chechia
 	#print "$key\t$index{$key}\n";
 	my $basedir = getTargetDir($key, $cacheDepth);
 	my @contents = `cat $basedir/$key-pitch.thema`;

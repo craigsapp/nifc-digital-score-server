@@ -115,8 +115,13 @@ sub getIndexFileId {
 		my @fields = split(/\t+/, $line);
 		my $fileid = $fields[$fileidIndex];
 		next if $fileid eq ".";
-		next if $fileid =~ /^pl-/;  # ignore POPC1 scores from Poland
-		next if $fileid =~ /^s-/;   # ignore POPC1 scores from Sweden
+		next if $fileid =~ /^pl-/;   # ignore for POPC1 scores if from Poland
+		next if $fileid =~ /^s-/;    # ignore for POPC1 scores if from Sweden
+		next if $fileid =~ /^d-/;    # ignore for POPC1 scores if from Germany
+		next if $fileid =~ /^f-/;    # ignore for POPC1 scores if from France
+		next if $fileid =~ /^i-/;    # ignore for POPC1 scores if from Italy
+		next if $fileid =~ /^sk-/;   # ignore for POPC1 scores if from Slovakia
+		next if $fileid =~ /^cz-/;   # ignore for POPC1 scores if from Chechia
 		my $md5 = $fields[$md5Index];
 		$output{$fileid} = $md5;
 	}
