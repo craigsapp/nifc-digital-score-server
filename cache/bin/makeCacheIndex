@@ -55,10 +55,15 @@ sub generateIndex {
 		$base =~ s/.*\///;
 		$base =~ s/\.krn$//;
 		my $shortbase = $base;
-		next if $base =~ /^s-/;
-		if (($base =~ /^pl-/) || ($base =~ /^s-/)) {
-			# pl- for Poland
-			# s- for Sweden
+		# next if $base =~ /^s-/;
+		if (($base =~ /^pl-/) ||  # Poland
+		    ($base =~ /^s-/)  ||  # Sweden
+		    ($base =~ /^d-/)  ||  # Germany
+		    ($base =~ /^f-/)  ||  # France
+		    ($base =~ /^i-/)  ||  # Italy
+		    ($base =~ /^sk-/) ||  # Slovakia
+		    ($base =~ /^cz-/)     # Chechia
+			) {
 			# POPC-2 file
 			$shortbase =~ s/_.*//;
 		} else {
@@ -77,7 +82,11 @@ sub generateIndex {
 		my $cenid = ".";
 		if ($shortbase =~ /^pl-/) {
 			$cenid = getCenturyId($file);
-		} elsif ($shortbase =~ /^s-/) {
+		} elsif ($shortbase =~ /^[sdfi]-/) {
+			$cenid = getCenturyId($file);
+		} elsif ($shortbase =~ /^sk-/) {
+			$cenid = getCenturyId($file);
+		} elsif ($shortbase =~ /^cz-/) {
 			$cenid = getCenturyId($file);
 		}
 
