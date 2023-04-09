@@ -314,15 +314,15 @@ other-derivatives: regenerate-spreadsheet-new
 ##############################
 ##
 ## Generate all derivatives in the makeDerivatives system:
-##   lyrics:    Extract lyrics from file.
-##   mei:       Convert Humdrum files to MEI files.
-##   musicxml:  Convert Humdrum files to MusicXML files.
-##   midi:      Convert Humdrum files to MIDI files.
+##
 ##   keyscape:  Convert Humdrum files into keyscape plot images.
+##   lyrics:    Extract lyrics by part from file.
+##   mei:       Convert Humdrum files to MEI files.
+##   midi:      Convert Humdrum files to MIDI files.
+##   musicxml:  Convert Humdrum files to MusicXML files.
 ##   prange:    Convert Humdrum files into prange plot images.
 ##   thema:     Generate thema search indexes.
 ##   wordlist:  Generate word list from lyrics in file.
-##
 
 generate-all:
 	bin/makeDerivatives

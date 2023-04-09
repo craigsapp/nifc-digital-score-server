@@ -2,7 +2,7 @@
 #
 # Programmer:    Craig Stuart Sapp <craig.stanford.edu>
 # Creation Date: Sun Sep 12 11:26:56 PDT 2021
-# Last Modified: Sun 28 Aug 2022 01:35:20 AM PDT
+# Last Modified: Sun 09 Apr 2023 02:10:38 PM PDT
 # Filename:      cache/bin/makeDerivatives
 # Syntax:        perl 5
 # vi:            ts=3
@@ -23,26 +23,28 @@
 #    -d derivative == Prepare derivatives of a certain type.  If no
 #                     specific derivative given, then prepare all
 #                     derivatives.  Allowed derivative types:
+#                        incipit  == Create SVG incipit file (using verovio)
+#                        keyscape == Create keyscape plot images (using mkeyscape and convert)
+#                        lyrics   == Extract lyrics from score by part.
 #                        mei      == Create MEI file (using verovio)
+#                        midi     == Create MIDI file (using hum2mid)
 #                        musedata == Create Musedata file (using humextra's hum2muse)
 #                        musicxml == Create MusicXML file (using converter21)
-#                        midi     == Create MIDI file (using hum2mid)
-#                        keyscape == Create keyscape plot images (using mkeyscape and convert)
-#                        incipit  == Create SVG incipit file (using verovio)
 #                        thema    == Create Thema search indexes (uses tindex)
 #                        wordlist == Create A list of words from any lyrics in the score.
 #
 # Each derivative is made with a separate script in the form derivative-*:
-#     derivative-mei       == Creates MEI files.
-#     derivative-musicxml  == Creates MusicXML files.
-#     derivative-midi      == Creates MIDI files.
-#     derivative-keyscape  == Creates keyscape image files.
+#
 #     derivative-incipit   == Creates musical incipit SVGs.
+#     derivative-keyscape  == Creates keyscape image files.
+#     derivative-lyrics    == Creates MEI files.
+#     derivative-mei       == Creates MEI files.
+#     derivative-midi      == Creates MIDI files.
+#     derivative-musicxml  == Creates MusicXML files.
 #     derivative-thema     == Creates Thema music search index file(s).
 #     derivative-wordlist  == Creates a list of words from lyrcs in the input score.
-#
+# 
 # Other dynamic-content files are generated on-the-fly by the CGI script.
-#
 
 use strict;
 use Getopt::Long;
@@ -65,7 +67,7 @@ $groups = "0123456789abcdef" if $groups =~ /^\s*$/;
 $groups = reverse($groups) if $reverseQ;
 
 # musicxml removed from the all option [20220813]
-$derivatives = "mei,midi,musedata,keyscape,prange,incipit,thema,wordlist" if $derivatives =~ /^\s*$/;
+$derivatives = "incipit,keyscape,lyrics,mei,midi,musedata,prange,thema,wordlist" if $derivatives =~ /^\s*$/;
 $derivatives =~ s/^[^0-9a-zA-Z_-]+//;
 $derivatives =~ s/[^0-9a-zA-Z_-]+$//;
 my @derivativeList = split (/[^0-9a-zA-Z_-]+/, $derivatives);
