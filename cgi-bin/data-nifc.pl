@@ -27,6 +27,8 @@
 #       keyscape-abspost == Keyscape (absolute, postprocessed)
 #       keyscape-relpost == Keyscape (relative, postprocessed)
 #       keyscape-info    == Keyscape image timing info
+#       prange-attack    == Pitch ranges by note attacks
+#       prange-duration  == Pitch ranges by note durations
 #       musicxml  == Conversion to MusicXML data.
 #          https://data.nifc.humdrum.org/18xx:100.musicxml
 #       incipit   == Conversion to SVG musical incipit.
@@ -172,6 +174,14 @@ sub processParameters {
 		sendDataContent($format, $id, @md5s);
 	} elsif ($format eq "keyscape-info") {
 		sendDataContent($format, $id, @md5s);
+   } elsif ($format eq "prange-duration.svg") {
+      sendDataContent("prange-duration-svg", $id, @md5s);
+   } elsif ($format eq "prange-attack.svg") {
+      sendDataContent("prange-attack-svg", $id, @md5s);
+   } elsif ($format eq "prange-duration.pmx") {
+      sendDataContent("prange-duration-pmx", $id, @md5s);
+   } elsif ($format eq "prange-attack.pmx") {
+      sendDataContent("prange-attack-pmx", $id, @md5s);
 	} elsif ($format eq "mid") {
 		sendDataContent($format, $id, @md5s);
 	} elsif ($format eq "midi") {
@@ -189,7 +199,7 @@ sub processParameters {
 		sendDataContent($format, $id, @md5s);
 	}
 
-	errorMessage("Unknown data format: $format");
+	errorMessage("Unknown data format: $format for ID $id");
 }
 
 
@@ -217,6 +227,14 @@ sub sendDataContent {
 		sendKeyscapeInfoContent($md5s[0]);
 	} elsif ($format =~ /^keyscape/) {
 		sendKeyscapeContent($md5s[0], $format);
+   } elsif ($format =~ /prange-duration-svg/) {
+      sendSvgContent("prange-duration", $md5s[0]);
+   } elsif ($format =~ /prange-attack-svg/) {
+      sendSvgContent("prange-attack", $md5s[0]);
+   } elsif ($format =~ /prange-duration-pmx/) {
+      sendPmxContent("prange-duration", $md5s[0]);
+   } elsif ($format =~ /prange-attack-pmx/) {
+      sendPmxContent("prange-attack", $md5s[0]);
 	} elsif ($format eq "mid") {
 		sendMidiContent($md5s[0]);
 	} elsif ($format eq "midi") {
@@ -460,6 +478,106 @@ sub sendMusicalIncipitContent {
 	print "$newline";
 	print $data;
 	exit(0);
+}
+
+
+
+##############################
+##
+## sendPmxContent -- Send duration or attack based prange plot.
+##
+## Known formats:
+##    prange-attack     == pitch range by note attacks
+##    prange-duration   == pitch range by note durations
+##
+
+sub sendPmxContent {
+   my ($format, $md5) = @_;
+
+   my $compressQ = 0;
+   $compressQ = 1 if $ENV{'HTTP_ACCEPT_ENCODING'} =~ /\bgzip\b/;
+
+   $md5 =~ /^(.)/;
+   my $cdir = getCacheSubdir($md5, $cacheDepth);
+   my $filename = "$cachedir/$cdir/$md5";
+   if ($format eq "prange-duration") {
+      $filename .= "-prange-duration.pmx.gz";
+   } elsif ($format eq "prange-attack") {
+      $filename .= "-prange-attack.pmx.gz";
+   } else {
+      errorMessage("sendPmxContent: Unknown format $format\n");
+   }
+
+   if (!-r $filename) {
+      errorMessage("PMX file is missing for $OPTIONS{'id'} format $format.");
+   }
+
+   my $mime = "text/plain";
+
+   if ($compressQ) {
+      my $data = `cat "$filename"`;
+      print "Content-Type: $mime$newline";
+      print "Content-Encoding: gzip$newline";
+      print "$newline";
+      print $data;
+      exit(0);
+   }
+
+   my $data = `zcat "$filename"`;
+   print "Content-Type: $mime$newline";
+   print "$newline";
+   print $data;
+   exit(0);
+}
+
+
+
+##############################
+##
+## sendSvgContent -- Send duration or attack based prange plot.
+##
+## Known formats:
+##    prange-attack     == pitch range by note attacks
+##    prange-duration   == pitch range by note durations
+##
+
+sub sendSvgContent {
+   my ($format, $md5) = @_;
+
+   my $compressQ = 0;
+   $compressQ = 1 if $ENV{'HTTP_ACCEPT_ENCODING'} =~ /\bgzip\b/;
+
+   $md5 =~ /^(.)/;
+   my $cdir = getCacheSubdir($md5, $cacheDepth);
+   my $filename = "$cachedir/$cdir/$md5";
+   if ($format eq "prange-duration") {
+      $filename .= "-prange-duration.svg.gz";
+   } elsif ($format eq "prange-attack") {
+      $filename .= "-prange-attack.svg.gz";
+   } else {
+      errorMessage("sendSvgContent: Unknown format $format\n");
+   }
+
+   if (!-r $filename) {
+      errorMessage("SVG file is missing for $OPTIONS{'id'} format $format.");
+   }
+
+   my $mime = "image/svg+xml";
+
+   if ($compressQ) {
+      my $data = `cat "$filename"`;
+      print "Content-Type: $mime$newline";
+      print "Content-Encoding: gzip$newline";
+      print "$newline";
+      print $data;
+      exit(0);
+   }
+
+   my $data = `zcat "$filename"`;
+   print "Content-Type: $mime$newline";
+   print "$newline";
+   print $data;
+   exit(0);
 }
 
 
@@ -713,6 +831,13 @@ sub splitFormatFromId {
 	# Default format is Humdrum data
 	if ($format =~ /^\s*$/) {
 		$format = "krn";
+	}
+
+	if ($id =~ s/-prange-attacks?$//) {
+		$format = "prange-attack.$format";
+	}
+	if ($id =~ s/-prange-durations?$//) {
+		$format = "prange-duration.$format";
 	}
 
 	$format = cleanFormat($format);

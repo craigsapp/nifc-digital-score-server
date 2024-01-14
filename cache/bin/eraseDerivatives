@@ -16,9 +16,10 @@
 #                         musicxml == MusicXML files
 #                         midi     == MIDI files
 #                         keyscape == keyscape plot images.
-#                         incipit  == Incipit SVG files
-#                         thema    == Thema search indexes
-#                         wordlist == Lyrics word lists.
+#                         incipit  == incipit SVG files
+#                         prange   == prange files
+#                         thema    == thema search indexes
+#                         wordlist == lyrics word lists.
 #
 
 use strict;
@@ -117,6 +118,8 @@ sub eraseDerivativesForEntry {
 			$command = "(cd $basedir/$md5 && rm -f $md5*.thema)";
 		} elsif ($derivative eq "wordlist") {
 			$command = "(cd $basedir/$md5 && rm -f $md5-wordlist.txt)";
+		} elsif ($derivative eq "prange") {
+			$command = "(cd $basedir/$md5 && rm -f $md5-prange*)";
 		}
 		if ($command !~ /^\s*$/) {
 			`$command`;
