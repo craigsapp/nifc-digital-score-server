@@ -29,6 +29,8 @@
 #       keyscape-info    == Keyscape image timing info
 #       prange-attack    == Pitch ranges by note attacks
 #       prange-duration  == Pitch ranges by note durations
+#       prange-attack-final   == Pitch ranges by note attacks with final notes
+#       prange-duration-final == Pitch ranges by note durations with final notes
 #       musicxml  == Conversion to MusicXML data.
 #          https://data.nifc.humdrum.org/18xx:100.musicxml
 #       incipit   == Conversion to SVG musical incipit.
@@ -178,10 +180,18 @@ sub processParameters {
       sendDataContent("prange-duration-svg", $id, @md5s);
    } elsif ($format eq "prange-attack.svg") {
       sendDataContent("prange-attack-svg", $id, @md5s);
+   } elsif ($format eq "prange-duration-final.svg") {
+      sendDataContent("prange-duration-final-svg", $id, @md5s);
+   } elsif ($format eq "prange-attack-final.svg") {
+      sendDataContent("prange-attack-final-svg", $id, @md5s);
    } elsif ($format eq "prange-duration.pmx") {
       sendDataContent("prange-duration-pmx", $id, @md5s);
    } elsif ($format eq "prange-attack.pmx") {
       sendDataContent("prange-attack-pmx", $id, @md5s);
+   } elsif ($format eq "prange-duration-final.pmx") {
+      sendDataContent("prange-duration-final-pmx", $id, @md5s);
+   } elsif ($format eq "prange-attack-final.pmx") {
+      sendDataContent("prange-attack-final-pmx", $id, @md5s);
 	} elsif ($format eq "mid") {
 		sendDataContent($format, $id, @md5s);
 	} elsif ($format eq "midi") {
@@ -235,6 +245,14 @@ sub sendDataContent {
       sendPmxContent("prange-duration", $md5s[0]);
    } elsif ($format =~ /prange-attack-pmx/) {
       sendPmxContent("prange-attack", $md5s[0]);
+   } elsif ($format =~ /prange-duration-final-svg/) {
+      sendSvgContent("prange-duration-final", $md5s[0]);
+   } elsif ($format =~ /prange-attack-final-svg/) {
+      sendSvgContent("prange-attack-final", $md5s[0]);
+   } elsif ($format =~ /prange-duration-final-pmx/) {
+      sendPmxContent("prange-duration-final", $md5s[0]);
+   } elsif ($format =~ /prange-attack-final-pmx/) {
+      sendPmxContent("prange-attack-final", $md5s[0]);
 	} elsif ($format eq "mid") {
 		sendMidiContent($md5s[0]);
 	} elsif ($format eq "midi") {
@@ -487,8 +505,10 @@ sub sendMusicalIncipitContent {
 ## sendPmxContent -- Send duration or attack based prange plot.
 ##
 ## Known formats:
-##    prange-attack     == pitch range by note attacks
-##    prange-duration   == pitch range by note durations
+##    prange-attack         == pitch range by note attacks
+##    prange-duration       == pitch range by note durations
+##    prange-attack-final   == pitch range by note attacks
+##    prange-duration-final == pitch range by note durations
 ##
 
 sub sendPmxContent {
@@ -504,6 +524,10 @@ sub sendPmxContent {
       $filename .= "-prange-duration.pmx.gz";
    } elsif ($format eq "prange-attack") {
       $filename .= "-prange-attack.pmx.gz";
+   } elsif ($format eq "prange-duration-final") {
+      $filename .= "-prange-duration-final.pmx.gz";
+   } elsif ($format eq "prange-attack-final") {
+      $filename .= "-prange-attack-final.pmx.gz";
    } else {
       errorMessage("sendPmxContent: Unknown format $format\n");
    }
@@ -537,8 +561,10 @@ sub sendPmxContent {
 ## sendSvgContent -- Send duration or attack based prange plot.
 ##
 ## Known formats:
-##    prange-attack     == pitch range by note attacks
-##    prange-duration   == pitch range by note durations
+##    prange-attack         == pitch range by note attacks
+##    prange-duration       == pitch range by note durations
+##    prange-attack-final   == pitch range by note attacks
+##    prange-duration-final == pitch range by note durations
 ##
 
 sub sendSvgContent {
@@ -554,6 +580,10 @@ sub sendSvgContent {
       $filename .= "-prange-duration.svg.gz";
    } elsif ($format eq "prange-attack") {
       $filename .= "-prange-attack.svg.gz";
+   } elsif ($format eq "prange-duration-final") {
+      $filename .= "-prange-duration-final.svg.gz";
+   } elsif ($format eq "prange-attack-final") {
+      $filename .= "-prange-attack-final.svg.gz";
    } else {
       errorMessage("sendSvgContent: Unknown format $format\n");
    }
@@ -838,6 +868,12 @@ sub splitFormatFromId {
 	}
 	if ($id =~ s/-prange-durations?$//) {
 		$format = "prange-duration.$format";
+	}
+	if ($id =~ s/-prange-attacks?-final$//) {
+		$format = "prange-attack-final.$format";
+	}
+	if ($id =~ s/-prange-durations?-final$//) {
+		$format = "prange-duration-final.$format";
 	}
 
 	$format = cleanFormat($format);

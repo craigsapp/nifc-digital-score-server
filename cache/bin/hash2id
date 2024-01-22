@@ -1,0 +1,124 @@
+#!/usr/bin/env perl
+#
+# Programmer:    Craig Stuart Sapp <craig.stanford.edu>
+# Creation Date: Sun Jan 21 04:19:34 PM EST 2024
+# Last Modified: Sun Jan 21 04:19:37 PM EST 2024
+# Filename:      cache/bin/hash2fileid
+# Syntax:        perl 5
+# vim:           ts=3
+#
+# Description:   Convert hash (8 characters) to file id.  
+#
+# Usage:
+#                cat idlist.hmd | hash2id -i cache-index.hmd
+# Options:
+#     -i indexfile.hmd  == Use the given hash index file.
+#
+# Example input:
+#
+#	fd977bc9
+#	fda328a7
+#	fe70cef4
+#	fee3466b
+#	fee645ee
+#	ff65efed
+#
+# Example output: hash2id -i cache-index.hmd 
+#	
+#	fd977bc9	pl-wtm--a-41-773-96
+#	fda328a7	pl-wn--mus-iii-62-780
+#	fe70cef4	pl-wtm--r-1690--001-004
+#	fee3466b	pl-wtm--r-460-m
+#	fee645ee	pl-wtm--r-1690--001-002
+#	ff65efed	pl-wn--mus-iii-104-138
+#
+# Example output: hash2id -c -i cache-index.hmd 
+#
+#	fd977bc9	19xx:46
+#	fda328a7	18xx:3767
+#	fe70cef4	18xx:2310
+#	fee3466b	18xx:3040
+#	fee645ee	18xx:2308
+#	ff65efed	18xx:3788
+#
+# Example output: hash2id -c -i cache-index.hmd  | cut -f 2
+#
+#	19xx:46
+#	18xx:3767
+#	18xx:2310
+#	18xx:3040
+#	18xx:2308
+#	18xx:3788
+#
+
+use strict;
+use Getopt::Long;
+
+my $indexFile = "";
+my $centuryQ = 0;
+Getopt::Long::Configure("bundling");
+GetOptions (
+   'i|index=s' => \$indexFile,
+   'c|century' => \$centuryQ
+);
+
+$indexFile = "cache-index.hmd" if !$indexFile or !-r $indexFile;
+
+my @hashes = <>;
+chomp @hashes;
+my %hash2fileid = createHashIndex($indexFile);
+
+for (my $i=0; $i<@hashes; $i++) {
+	my $hash = $hashes[$i];
+	my $fileid = $hash2fileid{$hash};
+	$fileid = "UNKNOWN" if $fileid =~ /^\s*$/;
+	print "$hash\t$fileid\n";
+}
+
+exit(0);
+
+###########################################################################
+
+##############################
+##
+## createHashIndex --
+##
+
+sub createHashIndex {
+	my ($filename) = @_;
+	open(FILE, $filename) or die "Cannot read $filename\n";
+	my @contents = <FILE>;
+	my %output;
+	chomp @contents;
+	close FILE;
+	my $hashIndex = -1;
+	my $idIndex = -1;
+
+	foreach my $line (@contents) {
+		next if $line =~ /^!/;
+		last if $line =~ /^\*-/;
+		if ($line =~ /^\*\*/) {
+			my @data = split(/\t+/, $line);
+			for (my $i=0; $i<@data; $i++) {
+				my $value = $data[$i];
+				$hashIndex = $i if $value =~ /^\*\*md5/;
+				if ($centuryQ) {
+					$idIndex = $i if $value =~ /^\*\*cenid/i;
+				} else {
+					$idIndex = $i if $value =~ /^\*\*fileid/i;
+				}
+			}
+		}
+		next if ($hashIndex < 0) || ($idIndex < 0);
+		my @data = split(/\t+/, $line);
+		my $hash = $data[$hashIndex];
+		my $file = $data[$idIndex];
+		next if $hash =~ /^\s*$/;
+		next if $file =~ /^\s*$/;
+		$output{$hash} = $file;
+	}
+	return %output;
+}
+
+
+
