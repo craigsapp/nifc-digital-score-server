@@ -152,11 +152,12 @@ sub addFlagInformation {
 	}
 	my $output = "";
 
+	my $fbQ      = "";
 	my $iiifQ    = "";
 	my $modernQ  = "";
 	my $singleQ  = "";
 	my $textQ    = "";
-	my $fbQ      = "";
+	my $fingQ    = "";
 
 	my $hasXywh = 0;
 	my $hasIiif = 0;
@@ -172,11 +173,12 @@ sub addFlagInformation {
 	foreach my $line (@contents) {
 		$hasMultiple = 1 if $line =~ /\*\^/;
 		$hasXywh = 1     if $line =~ /^\*.*xywh/;
-		$hasIiif = 1     if $line =~ /^!!!IIIF/;
-		$textQ   = "T"   if $line =~ /^\*\*.*text/;
 		$fbQ     = "F"   if $line =~ /^\*\*.*fb/;
 		$fbQ     = "F"   if $line =~ /^\*\*.*fba/;
+		$hasIiif = 1     if $line =~ /^!!!IIIF/;
 		$modernQ = "M"   if $line =~ /^!!!filter-modern:/;
+		$textQ   = "T"   if $line =~ /^\*\*.*text/;
+		$fingQ   = "G"   if $line =~ /^\*\*.*fing/;
 	}
 
 	if ($hasXywh && $hasIiif) {
@@ -191,6 +193,8 @@ sub addFlagInformation {
 		$singleQ = "S";
 	}
 
+	# The same order should be preserved: add new flags to end of list.
+	#
 	# F = has figured bass encodings
 	# I = has IIIF encodings (bounding boxes and IIIF manifest)
 	# i = has incomplete IIIF encodings (bounding boxes or IIIF manifest)
@@ -198,7 +202,8 @@ sub addFlagInformation {
 	# S = has non-splitting spines (simple voices)  This should be refined
 	# 	   so that only **kern spines are checked for split.
 	# T = has text (lyrics)
-	$output = "\@flags:\t\t\t$fbQ$iiifQ$modernQ$singleQ$textQ\n";
+	# G = has fingerings
+	$output = "\@flags:\t\t\t$fbQ$iiifQ$modernQ$singleQ$textQ$fingQ\n";
 
 	return $output;
 }
