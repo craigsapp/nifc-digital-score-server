@@ -152,12 +152,12 @@ sub addFlagInformation {
 	}
 	my $output = "";
 
-	my $fbQ      = "";
+	my $bcQ      = "";
+	my $fingQ    = "";
 	my $iiifQ    = "";
 	my $modernQ  = "";
 	my $singleQ  = "";
 	my $textQ    = "";
-	my $fingQ    = "";
 
 	my $hasXywh = 0;
 	my $hasIiif = 0;
@@ -173,12 +173,12 @@ sub addFlagInformation {
 	foreach my $line (@contents) {
 		$hasMultiple = 1 if $line =~ /\*\^/;
 		$hasXywh = 1     if $line =~ /^\*.*xywh/;
-		$fbQ     = "F"   if $line =~ /^\*\*.*fb/;
-		$fbQ     = "F"   if $line =~ /^\*\*.*fba/;
+		$bcQ     = "B"   if $line =~ /^\*\*.*fb/;
+		$bcQ     = "B"   if $line =~ /^\*\*.*fba/;
+		$fingQ   = "F"   if $line =~ /^\*\*.*fing/;
 		$hasIiif = 1     if $line =~ /^!!!IIIF/;
 		$modernQ = "M"   if $line =~ /^!!!filter-modern:/;
 		$textQ   = "T"   if $line =~ /^\*\*.*text/;
-		$fingQ   = "G"   if $line =~ /^\*\*.*fing/;
 	}
 
 	if ($hasXywh && $hasIiif) {
@@ -195,7 +195,8 @@ sub addFlagInformation {
 
 	# The same order should be preserved: add new flags to end of list.
 	#
-	# F = has figured bass encodings
+	# B = has basso continuo figure encodings
+	# F = has fingering encodings
 	# I = has IIIF encodings (bounding boxes and IIIF manifest)
 	# i = has incomplete IIIF encodings (bounding boxes or IIIF manifest)
 	# M = has modern filter
@@ -203,7 +204,7 @@ sub addFlagInformation {
 	# 	   so that only **kern spines are checked for split.
 	# T = has text (lyrics)
 	# G = has fingerings
-	$output = "\@flags:\t\t\t$fbQ$iiifQ$modernQ$singleQ$textQ$fingQ\n";
+	$output = "\@flags:\t\t\t$bcQ$fingQ$iiifQ$modernQ$singleQ$textQ\n";
 
 	return $output;
 }
