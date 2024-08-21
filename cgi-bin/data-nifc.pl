@@ -50,6 +50,8 @@
 use strict;
 
 my $newline = "\r\n";
+my $extractx = "/home/nifc/humdrum-tools/humextra/bin/extractx";
+my $ridx     = "/home/nifc/humdrum-tools/humextra/bin/ridx";
 
 ##############################
 ##
@@ -135,7 +137,7 @@ exit(0);
 sub processParameters {
 	my ($id, $format) = @_;
 
-	errorMessage("ID is empty.") if $id =~ /^\s*$/;
+	printInfoPage() if $id =~ /^\s*$/;
 	errorMessage("Strange invalid ID \"$id\".") if $id =~ /^[._-]+$/;
 	errorMessage("ID \"$id\" contains invalid characters.") if $id =~ /[^a-zA-Z0-9,:_-]/;
 
@@ -1239,6 +1241,387 @@ sub getDate {
 	$output{"dayofyear"} = $dayofyear;
 	$output{"timezone"} = $isdst;
 	return %output;
+}
+
+
+
+##############################
+##
+## printInfoPage -- Print a list of possible data services from the
+##      data server.
+##
+## Cache index exinterp line: **md5	**jrpid	**tasso	**1520s
+##
+
+sub printInfoPage {
+	# my $server = $OPTIONS{"server_name"};
+	my $server = "humdrum.nifc.pl";
+
+	my $cacheIndex = "$cachedir/cache-index.hmd";
+	my @ids = sort `$extractx -i "cenid,fileid" $cacheIndex | $ridx -dH`;
+	chomp @ids;
+	my @cenids = getIds(0, @ids);
+	my @fileids = getIds(1, @ids);
+
+	@cenids = sort {
+		my ($a_key, $a_num) = split /:/, $a;
+		my ($b_key, $b_num) = split /:/, $b;
+		$a_key cmp $b_key || $a_num <=> $b_num
+	} @cenids;
+
+	my $cenidOptions = "\n<option>" . join("</option>\n<option>", @cenids) . "</option>\n";
+	my $fileidOptions = "\n<option>" . join("</option>\n<option>", @fileids) . "</option>\n";
+	my $mime = "text/html";
+	my $charset = ";charset=UTF-8";
+	print "Content-Type: $mime$charset$newline";
+	print "$newline";
+	print <<"EOT";
+<html>
+<head>
+<title>API </title>
+<script src="https://aton.sapp.org/javascripts/aton.min.js"></script>
+<body>
+
+<h1>Data API for $server</h1>
+
+<p>Choose a CenID:
+<select id="select-cenid" onchange="displaySelectedId()">$cenidOptions</select>
+or FileId:
+<select id="select-fileid" onchange="displaySelectedId()">$fileidOptions</select>
+<input type="checkbox" id="visual" onclick="displaySelectedId()"> Display visual resources
+<button id="random" onclick="displayRandomId()">Random</button>
+
+</p>
+
+<hr noshade>
+
+<style>
+body { font-size: 1rem; margin-left: 20px; margin-bottom: 100px; }
+table { border-collapse: collapse; }
+table tr td:first-child { white-space: nowrap; }
+table td { vertical-align: top; padding-right: 10px; }
+table tr.group td { font-size: 1.15rem; font-weight: bold; padding-top: 10px; }
+table tr.group td::after { content: ":"; }
+table tr.resource:hover { background-color: #f0f0f0; }
+a { color: #00e; text-decoration: none }
+a:visited { color: #00e; text-decoration: none; }
+a b { color: purple; }
+img { max-width:600px; max-height:250px; margin-left:50px; }
+audio { margin-left:50px; width:400px; }
+#random {
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+#random:hover {
+    background-color: red;
+    color: white;
+    border-color: red;
+}
+</style>
+
+<script>
+
+var TEMPLATE = {};
+
+
+//////////////////////////////
+//
+// DOMContentLoaded listener -- Run when webpage is loaded.
+//
+
+document.addEventListener("DOMContentLoaded", function () {
+	let aton = new ATON;
+	let adata = document.querySelector("script#aton-data").textContent;
+	TEMPLATE = aton.parse(adata);
+	displaySelectedId();
+});
+
+
+//////////////////////////////
+//
+// displayRandomId -- choose a random ID to display.
+//
+
+function displayRandomId() {
+    var selectElement = document.getElementById("select-id");
+    var options = selectElement.options;
+    var randomIndex = Math.floor(Math.random() * options.length);
+    selectElement.selectedIndex = randomIndex;
+    displaySelectedId();
+}
+
+
+
+//////////////////////////////
+//
+// displaySelectedId -- Display resource links for selected ID.
+//
+
+function displaySelectedId(event) {
+	const server = "$server";
+	let id = document.querySelector("select#select-cenid").value;
+	let visualQ = document.querySelector("input#visual").checked;
+	let contents = "";
+
+	contents += "<ul>\\n";
+
+	contents += "<li>"
+	contents += "<b>Work page:</b> ";
+	let url;
+	let urlTitle;
+	if (server.match(/1520s/)) {
+		url = `https://1520s-project.org/work/?id=\${id}`;
+		urlTitle = `https://1520s-project.org/work/?id=<b>\${id}</b>`;
+	} else if (server.match(/tasso/)) {
+		url = `https://www.tassomusic.org/work/?id=\${id}`;
+		urlTitle = `https://www.tassomusic.org/work/?id=<b>\${id}</b>`;
+	} else {
+		url = `https://josquin.stanford.edu/work/?id=\${id}`;
+		urlTitle = `https://josquin.stanford.edu/work/?id=<b>\${id}</b>`;
+	}
+	contents += `<a target="_blank" href="\${url}">\${urlTitle}</a>`;
+	contents += "</li>\\n";
+
+	let vhv = `https://verovio.humdrum.org/?file=https://\${server}/\${id}.krn`;
+	let vhvTitle = `https://verovio.humdrum.org/?file=https://\${server}/<b>\${id}</b>.krn`;
+	contents += "<li>";
+	contents += `<b>VHV</b>: <a target="_blank" href="\${vhv}">\${vhvTitle}</a>`;
+	contents += "</li>\\n";
+
+	contents += "</ul>\\n";
+
+	contents += "<table>";
+
+
+	let group = "";
+	let entries = TEMPLATE.ENTRY;
+	for (let i=0; i<entries.length; i++) {
+		let thisGroup = entries[i].GROUP || "";
+		if (thisGroup !== group) {
+		   contents += `<tr class='group'><td colspan='2'>\${thisGroup}</td></tr>\\n`;
+			group = thisGroup;
+		}
+		let fileTemplate = `https://\${server}/\${entries[i].FILE}`;
+		let fileUrl = fileTemplate.replace(/\{ID\}/g, id);
+		let fileText = fileTemplate.replace(/\{ID\}/g, `<b>\${id}</b>`);
+		let description = entries[i].DESCRIPTION;
+		let row = "";
+		row += "<tr class='resource'>";
+		row += "<td>";
+		row += `<a target="_blank" href="\${fileUrl}">\${fileText}</a>`;
+		row += "</td>";
+		row += "<td>";
+		row += description;
+		row += "</td>";
+		row += "</tr>\\n";
+		contents += row;
+
+		// Add images if necessary
+		if (visualQ && (entries[i].VISUAL === "image")) {
+			let row = "<tr class='image'><td colspan='2'>";
+			row += `<a target="_blank" href="\${fileUrl}">`;
+			row += `<img src='\${fileUrl}'>`;
+			row += "</a>";
+			row += "</td></tr>\\n";
+			contents += row;
+		} else if (visualQ && (entries[i].VISUAL === "audio")) {
+			let row = "<tr class='audio'><td colspan='2'>";
+			row += "<audio controls preload='metadata'>";
+			row += `<source src="\${fileUrl}" type="audio/mpeg">`;
+			row += "</audio>";
+			row += "</td></tr>\\n";
+			contents += row;
+		}
+	}
+
+	contents += "</table>";
+	let element = document.querySelector("#api");
+	//console.log("CONTENTS", contents);
+	element.innerHTML = contents;
+}
+
+</script>
+
+<div id="api"></div>
+
+
+
+<script id="aton-data" type="text/x-aton">
+
+\@SERVER: $server
+
+\@\@\@ Digital score
+
+\@\@BEGIN: ENTRY
+\@GROUP: Digital score
+\@FILE: {ID}.krn
+\@DESCRIPTION: Humdrum digital score
+\@\@END:   ENTRY
+
+\@\@\@ Data conversions
+
+\@\@BEGIN: ENTRY
+\@GROUP: Data conversions
+\@FILE: {ID}.mds
+\@DESCRIPTION: MuseData conversion of digital score
+\@\@END:   ENTRY
+
+\@\@BEGIN: ENTRY
+\@GROUP: Data conversions
+\@FILE: {ID}.mei
+\@DESCRIPTION: MEI conversion of digital score
+\@\@END:   ENTRY
+
+\@\@BEGIN: ENTRY
+\@GROUP: Data conversions
+\@FILE: {ID}.musicxml
+\@DESCRIPTION: MusicXML conversion of digital score
+\@\@END:   ENTRY
+
+\@\@BEGIN: ENTRY
+\@GROUP: Data conversions
+\@FILE: {ID}.mid
+\@DESCRIPTION: MIDI digital score
+\@\@END:   ENTRY
+
+\@\@BEGIN: ENTRY
+\@GROUP: Data conversions
+\@FILE: {ID}-timemap.json
+\@DESCRIPTION: Timemap extracted MIDI digital score (used for MP3 playback highlighting)
+\@\@END:   ENTRY
+
+\@\@BEGIN: ENTRY
+\@GROUP: Data conversions
+\@FILE: {ID}.mp3
+\@VISUAL: audio
+\@DESCRIPTION: MP3 rendering of score (from MIDI file)
+\@\@END:   ENTRY
+
+\@\@\@ Notation
+
+\@\@BEGIN: ENTRY
+\@GROUP: Notation
+\@FILE: {ID}-incipit.svg
+\@VISUAL: image
+\@DESCRIPTION: First line of rendered music as an SVG image
+\@\@END:   ENTRY
+
+\@\@\@ Pitch-range histograms
+
+\@\@BEGIN: ENTRY
+\@GROUP: Pitch-range histograms
+\@FILE: {ID}-prange-attack.svg
+\@VISUAL: image
+\@DESCRIPTION: Pitch range by note attacks for voices in score, as and SVG image
+\@\@END:   ENTRY
+
+\@\@BEGIN: ENTRY
+\@GROUP: Pitch-range histograms
+\@FILE: {ID}-prange-attack.pmx
+\@DESCRIPTION: Pitch range by note attacks for voices in score, as input PMX for SCORE
+\@\@END:   ENTRY
+
+\@\@BEGIN: ENTRY
+\@GROUP: Pitch-range histograms
+\@FILE: {ID}-prange-duration.svg
+\@VISUAL: image
+\@DESCRIPTION: Pitch range by note durations for voices in score, as and SVG image
+\@\@END:   ENTRY
+
+\@\@BEGIN: ENTRY
+\@GROUP: Pitch-range histograms
+\@FILE: {ID}-prange-attack.pmx
+\@DESCRIPTION: Pitch range by note durations for voices in score, as input PMX for SCORE
+\@\@END:   ENTRY
+
+
+\@\@\@ Keyscapes
+
+\@\@BEGIN: ENTRY
+\@GROUP: Keyscape plots
+\@FILE: {ID}-keyscape-abspre.png
+\@VISUAL: image
+\@DESCRIPTION: Keyscape plot, absolute colors, preprocessed
+\@\@END:   ENTRY
+
+\@\@BEGIN: ENTRY
+\@GROUP: Keyscape plots
+\@FILE: {ID}-keyscape-relpre.png
+\@VISUAL: image
+\@DESCRIPTION: Keyscape plot, relative colors, preprocessed
+\@\@END:   ENTRY
+
+\@\@BEGIN: ENTRY
+\@GROUP: Keyscape plots
+\@FILE: {ID}-keyscape-abspost.png
+\@VISUAL: image
+\@DESCRIPTION: Keyscape plot, absolute colors, postprocessed
+\@\@END:   ENTRY
+
+\@\@BEGIN: ENTRY
+\@GROUP: Keyscape plots
+\@FILE: {ID}-keyscape-relpost.png
+\@VISUAL: image
+\@DESCRIPTION: Keyscape plot, relative colors, postprocessed
+\@\@END:   ENTRY
+
+\@\@BEGIN: ENTRY
+\@GROUP: Keyscape plots
+\@FILE: {ID}.keyscape-info
+\@DESCRIPTION: Keyscape image timing info
+\@\@END:   ENTRY
+
+\@\@\@ Lyrics extraction
+
+\@\@BEGIN: ENTRY
+\@GROUP: Lyrics extraction
+\@FILE: {ID}.lyrics
+\@DESCRIPTION: HTML page template with extracted lyrics (text underlay) 
+	by voice.
+\@\@END:   ENTRY
+
+\@\@BEGIN: ENTRY
+\@GROUP: Lyrics extraction
+\@FILE: {ID}.lyrics-modern
+\@DESCRIPTION: HTML page template with extracted lyrics (text underlay) 
+	by voice.  Letters/words in text have been modernized 
+	(when available; otherwise original lyrics will be used).
+\@\@END:   ENTRY
+
+</script>
+
+
+</body>
+</html>
+EOT
+
+exit(0);
+
+
+}
+
+
+
+##############################
+##
+## getIds -- return the given column index.
+##
+
+sub getIds {
+	my ($col, @ids) = @_;
+	my @output;
+	foreach my $id (@ids) {
+		my @data = split(/\t/, $id);
+		my $value = $data[$col];
+		next if $value =~ /^\s*$/;
+		next if $value eq ".";
+		$value =~ s/_.*//;
+		$output[@output] = $value;
+	}
+	return @output;
 }
 
 

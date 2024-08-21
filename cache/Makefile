@@ -204,7 +204,7 @@ popc2-score-index-new:
 	-rm -f indexes/popc2-score-index.aton.gz
 	-rm -f indexes/popc2-score-index.json.gz
 	bin/makePopc2ScoreIndex -i cache-index-new.hmd > indexes/popc2-score-index.aton
-	(cd indexes; aton2json popc2-score-index.aton | sed 's/^{"ENTRY"://; s/}[]]}$$/}]/' > popc2-score-index.json)
+	(cd indexes; aton2json popc2-score-index.aton | sed 's/^{"ENTRY"://; s/}[]]}$$/}]/' | jq . > popc2-score-index.json)
 	(cd indexes; gzip popc2-score-index.json)
 	(cd indexes; gzip popc2-score-index.aton)
 
@@ -213,7 +213,7 @@ popc2-score-index:
 	-rm -f indexes/popc2-score-index.aton.gz
 	-rm -f indexes/popc2-score-index.json.gz
 	bin/makePopc2ScoreIndex -i cache-index.hmd > indexes/popc2-score-index.aton
-	(cd indexes; aton2json popc2-score-index.aton | sed 's/^{"ENTRY"://; s/}[]]}$$/}]/' > popc2-score-index.json)
+	(cd indexes; aton2json popc2-score-index.aton | sed 's/^{"ENTRY"://; s/}[]]}$$/}]/' | jq . > popc2-score-index.json)
 	(cd indexes; gzip popc2-score-index.json)
 	(cd indexes; gzip popc2-score-index.aton)
 
@@ -222,7 +222,7 @@ popc1-score-index-new:
 	-rm -f indexes/popc1-score-index.aton.gz
 	-rm -f indexes/popc1-score-index.json.gz
 	bin/makePopc1ScoreIndex -i cache-index-new.hmd > indexes/popc1-score-index.aton
-	(cd indexes; aton2json popc1-score-index.aton | sed 's/^{"ENTRY"://; s/}[]]}$$/}]/' > popc1-score-index.json)
+	(cd indexes; aton2json popc1-score-index.aton | sed 's/^{"ENTRY"://; s/}[]]}$$/}]/' | jq . > popc1-score-index.json)
 	(cd indexes; gzip popc1-score-index.json)
 	(cd indexes; gzip popc1-score-index.aton)
 
@@ -231,7 +231,7 @@ popc1-score-index:
 	-rm -f indexes/popc1-score-index.aton.gz
 	-rm -f indexes/popc1-score-index.json.gz
 	bin/makePopc1ScoreIndex -i cache-index.hmd > indexes/popc1-score-index.aton
-	(cd indexes; aton2json popc1-score-index.aton | sed 's/^{"ENTRY"://; s/}[]]}$$/}]/' > popc1-score-index.json)
+	(cd indexes; aton2json popc1-score-index.aton | sed 's/^{"ENTRY"://; s/}[]]}$$/}]/' | jq . > popc1-score-index.json)
 	(cd indexes; gzip popc1-score-index.json)
 	(cd indexes; gzip popc1-score-index.aton)
 
