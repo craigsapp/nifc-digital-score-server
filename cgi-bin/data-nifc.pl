@@ -21,6 +21,7 @@
 #    Static cached formats:
 #       krn       == Humdrum data file.
 #       mei       == Conversion to MEI data.
+#       mds       == Conversion to MuseData.
 #       mid       == Conversion to MIDI data.
 #       keyscape-abspre  == Keyscape (absolute, preprocessed)
 #       keyscape-relpre  == Keyscape (relative, preprocessed)
@@ -155,7 +156,7 @@ sub processParameters {
 			print "$newline";
 			print "[]$newline";
 			exit(0);
-		} 
+		}
 		errorMessage("Entry for $id :: $format was not found.") if @md5s < 1;
 	}
 
@@ -166,6 +167,8 @@ sub processParameters {
 		sendDataContent($format, $id, @md5s);
 	} elsif ($format eq "musicxml") {
 		sendDataContent($format, $id, @md5s);
+   } elsif (($format eq "mds") || ($format eq "musedata") || ($format eq "md2")) {
+      sendDataContent("mds", $id, @md5s);
 	} elsif ($format eq "incipit") {
 		sendDataContent($format, $id, @md5s);
 	} elsif ($format eq "keyscape-abspre") {
@@ -233,6 +236,8 @@ sub sendDataContent {
 		sendMeiContent($md5s[0]);
 	} elsif ($format eq "musicxml") {
 		sendMusicxmlContent($md5s[0]);
+   } elsif ($format eq "mds" || $format eq "musedata" || $format eq "md2") {
+      sendMuseDataContent($md5s[0]);
 	} elsif ($format eq "incipit") {
 		sendMusicalIncipitContent($md5s[0]);
 	} elsif ($format =~ /^keyscape-info/) {
@@ -425,6 +430,46 @@ sub sendMeiContent {
 	print $data;
 	exit(0);
 }
+
+
+
+##############################
+##
+## sendMuseDataContent -- (Static content) Send MuseData conversion of Humdrum data.
+##
+
+sub sendMuseDataContent {
+   my ($md5) = @_;
+   my $cdir = getCacheSubdir($md5, $cacheDepth);
+   my $format = "mds";
+   my $mime = "text/plain";
+
+   # MuseData data is stored in gzip-compressed file.  If the browser
+   # accepts gzip compressed data, send the compressed form of the data;
+   # otherwise, unzip and send as plain text.
+   my $compressQ = 0;
+   $compressQ = 1 if $ENV{'HTTP_ACCEPT_ENCODING'} =~ /\bgzip\b/;
+   if (!-r "$cachedir/$cdir/$md5.$format.gz") {
+      errorMessage("MuseData file is missing for $OPTIONS{'id'}.");
+   }
+   if ($compressQ) {
+      my $data = `cat "$cachedir/$cdir/$md5.$format.gz"`;
+      print "Content-Type: $mime$newline";
+      print "Content-Disposition: inline; filename=\"$OPTIONS{'id'}.mds\"$newline";
+      print "Content-Encoding: gzip$newline";
+      print "$newline";
+      print $data;
+      exit(0);
+   }
+
+   my $data = `zcat "$cachedir/$cdir/$md5.$format.gz"`;
+   print "Content-Type: $mime$newline";
+   print "Content-Disposition: inline; filename=\"$OPTIONS{'id'}.mds\"$newline";
+   print "$newline";
+   print $data;
+   exit(0);
+}
+
 
 
 
@@ -1493,12 +1538,6 @@ function displaySelectedId(event) {
 \@DESCRIPTION: Timemap extracted MIDI digital score (used for MP3 playback highlighting)
 \@\@END:   ENTRY
 
-\@\@BEGIN: ENTRY
-\@GROUP: Data conversions
-\@FILE: {ID}.mp3
-\@VISUAL: audio
-\@DESCRIPTION: MP3 rendering of score (from MIDI file)
-\@\@END:   ENTRY
 
 \@\@\@ Notation
 
@@ -1508,6 +1547,7 @@ function displaySelectedId(event) {
 \@VISUAL: image
 \@DESCRIPTION: First line of rendered music as an SVG image
 \@\@END:   ENTRY
+
 
 \@\@\@ Pitch-range histograms
 
@@ -1574,20 +1614,21 @@ function displaySelectedId(event) {
 \@DESCRIPTION: Keyscape image timing info
 \@\@END:   ENTRY
 
+
 \@\@\@ Lyrics extraction
 
 \@\@BEGIN: ENTRY
 \@GROUP: Lyrics extraction
 \@FILE: {ID}.lyrics
-\@DESCRIPTION: HTML page template with extracted lyrics (text underlay) 
+\@DESCRIPTION: HTML page template with extracted lyrics (text underlay)
 	by voice.
 \@\@END:   ENTRY
 
 \@\@BEGIN: ENTRY
 \@GROUP: Lyrics extraction
 \@FILE: {ID}.lyrics-modern
-\@DESCRIPTION: HTML page template with extracted lyrics (text underlay) 
-	by voice.  Letters/words in text have been modernized 
+\@DESCRIPTION: HTML page template with extracted lyrics (text underlay)
+	by voice.  Letters/words in text have been modernized
 	(when available; otherwise original lyrics will be used).
 \@\@END:   ENTRY
 

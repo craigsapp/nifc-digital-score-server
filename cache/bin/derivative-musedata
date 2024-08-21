@@ -2,7 +2,7 @@
 #
 # Programmer:    Craig Stuart Sapp <craig.stanford.edu>
 # Creation Date: Sun 28 Aug 2022 01:26:01 AM PDT
-# Last Modified: Sun 28 Aug 2022 01:26:05 AM PDT
+# Last Modified: Wed Aug 21 01:20:36 AM EDT 2024
 # Filename:      cache/bin/derivative-musedata
 # Syntax:        perl 5
 # vim:           ts=3
@@ -29,7 +29,7 @@ my $md5id = $ARGV[0];
 die "Invalid MD5 value: $md5id\n" if $md5id !~ /^[0-9a-f]{8}$/;
 
 my $inputfile = "$md5id.krn";
-my $outputfile = "$md5id.md2";
+my $outputfile = "$md5id.mds";
 
 die "ERROR: Cannot find input file $inputfile\n" if !-r $inputfile;
 
