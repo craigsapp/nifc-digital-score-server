@@ -490,7 +490,7 @@ sub sendMusicxmlContent {
 	my $compressQ = 0;
 	$compressQ = 1 if $ENV{'HTTP_ACCEPT_ENCODING'} =~ /\bgzip\b/;
 	if (!-r "$cachedir/$cdir/$md5.$format.gz") {
-		errorMessage("MusicXML file is missing for $OPTIONS{'id'}.");
+		errorMessage("MusicXML file is missing for $OPTIONS{'id'}. $cachedir/$cdir/$md5.$format.gz");
 	}
 	if ($compressQ) {
 		my $data = `cat "$cachedir/$cdir/$md5.$format.gz"`;
@@ -728,7 +728,7 @@ sub sendMidiContent {
 
 	my $data = `cat "$cachedir/$cdir/$md5.$format"`;
 	print "Content-Type: $mime$newline";
-	print "Content-Disposition: attachment; filename=\"data.mid\"$newline";
+	print "Content-Disposition: inline; filename=\"data.mid\"$newline";
 	print "$newline";
 	print $data;
 	exit(0);
@@ -1329,6 +1329,45 @@ sub printInfoPage {
 
 <h1>Data API for $server</h1>
 
+<h2> Indexes </h2>
+
+<dl>
+
+<dt> <b>Score index:</b>
+<dd>
+	<a target="_blank" href="https://humdrum.nifc.pl/popc2-score-index.json">https://humdrum.nifc.pl/popc2-score-index.json</a><br>
+	<a target="_blank" href="https://humdrum.nifc.pl/popc2-score-index.aton">https://humdrum.nifc.pl/popc2-score-index.aton</a>
+</dd>
+
+<dt> <b>Lyrics index:</b>
+<dd>
+	<a target="_blank" href="https://humdrum.nifc.pl/popc2-lyrics-index.txt">https://humdrum.nifc.pl/popc2-lyrics-index.txt</a><br>
+</dd>
+
+<dt> <b>Siglum index:</b>
+<dd>
+	<a target="_blank" href="https://humdrum.nifc.pl/siglum-index.json">https://humdrum.nifc.pl/siglum-index.json</a><br>
+	<a target="_blank" href="https://humdrum.nifc.pl/siglum-index.aton">https://humdrum.nifc.pl/siglum-index.aton</a><br>
+</dd>
+
+<dt> <b>Composer index:</b>
+<dd>
+	<a target="_blank" href="https://humdrum.nifc.pl/popc2-composer-index.json">https://humdrum.nifc.pl/popc2-composer-index.json</a><br>
+	<a target="_blank" href="https://humdrum.nifc.pl/popc2-composer-index.aton">https://humdrum.nifc.pl/popc2-composer-index.aton</a><br>
+</dd>
+
+<dt> <b>Instrument index:</b>
+<dd>
+	<a target="_blank" href="https://humdrum.nifc.pl/instrument-index.json">https://humdrum.nifc.pl/instrument-index.json</a><br>
+</dd>
+
+
+</dl>
+
+<hr noshade>
+
+<h2> Digital scores </h2>
+
 <p>Choose a CenID:
 <select id="select-cenid" onchange="displaySelectedId()">$cenidOptions</select>
 or FileId:
@@ -1338,7 +1377,6 @@ or FileId:
 
 </p>
 
-<hr noshade>
 
 <style>
 body { font-size: 1rem; margin-left: 20px; margin-bottom: 100px; }
